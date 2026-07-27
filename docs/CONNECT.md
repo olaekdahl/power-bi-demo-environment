@@ -72,8 +72,12 @@ Open SSMS and connect to:
 | Server name | `localhost` |
 | Authentication | Windows Authentication |
 
-Windows auth just works — the RDP account is a sysadmin. In Power BI Desktop,
-**Get Data → SQL Server**, server `localhost`, database `AdventureWorksDW2022`.
+Windows auth works for the RDP account, which the Azure image makes a sysadmin.
+In Power BI Desktop, **Get Data → SQL Server**, server `localhost`, database
+`AdventureWorksDW2022`.
+
+If you ever need SQL authentication on the VM itself, the `pl300sql` login below
+works there too.
 
 ### From your own laptop
 
@@ -159,6 +163,14 @@ az vm run-command invoke -g pbi-rg -n pl300-demo-vm \
   --command-id RunPowerShellScript \
   --scripts 'Get-Content C:\PL300\Logs\bootstrap.log -Tail 80' \
   --query 'value[0].message' -o tsv
+```
+
+**`terraform plan` fails with `VmNotRunning`.** Expected when the VM is
+deallocated — the SQL VM resource cannot be read while it is stopped. Start it
+first:
+
+```bash
+./scripts/start-vm.sh
 ```
 
 **Power BI Desktop wants a sign-in.** Reports and models work fully offline. You

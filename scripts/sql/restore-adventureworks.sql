@@ -63,9 +63,15 @@ CREATE TABLE #filelist (
     SnapshotUrl          nvarchar(360)
 );
 
+/* EXEC() accepts only string literals and string variables as its operands -
+   a function call such as QUOTENAME() inside EXEC( ... + ... ) is a syntax
+   error (Msg 102). Build the statement into a variable first. */
+DECLARE @filelistCmd nvarchar(4000) =
+    N'RESTORE FILELISTONLY FROM DISK = ' + QUOTENAME(@bak, '''');
+
 BEGIN TRY
     INSERT INTO #filelist
-    EXEC (N'RESTORE FILELISTONLY FROM DISK = ' + QUOTENAME(@bak, ''''));
+    EXEC (@filelistCmd);
 END TRY
 BEGIN CATCH
     PRINT 'Could not read the backup header (' + ERROR_MESSAGE() + ').';

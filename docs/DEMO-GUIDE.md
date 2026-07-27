@@ -235,11 +235,21 @@ Connect Power BI Desktop with **Get Data → SQL Server**, server `localhost`.
   PL-300 labs use. Go here for modelling and DAX.
 - **`AdventureWorks2022`** — normalized OLTP. Go here to show why you reshape.
 
-Confirm the date range before building time-intelligence demos, since it drives
-every YoY example:
+Verified contents of this instance:
+
+| | |
+|---|---|
+| `FactInternetSales` | **60,398 rows**, `OrderDate` spanning **2010-12-29 to 2014-01-28** |
+| `AdventureWorks2022` | 71 tables in the OLTP schema |
+
+That date range matters for the DAX below: the data covers **three complete
+years (2011, 2012, 2013)** plus a few days either side. Year-over-year measures
+are therefore blank for 2011 and misleading for 2014 — which is a useful thing to
+show deliberately rather than discover live. Slice to 2012–2013 for clean YoY
+demos.
 
 ```sql
-SELECT MIN(OrderDate) AS FirstOrder, MAX(OrderDate) AS LastOrder, COUNT(*) AS Rows
+SELECT MIN(OrderDate) AS FirstOrder, MAX(OrderDate) AS LastOrder, COUNT(*) AS [Rows]
 FROM dbo.FactInternetSales;
 ```
 

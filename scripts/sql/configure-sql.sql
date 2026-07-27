@@ -1,14 +1,19 @@
 /* ---------------------------------------------------------------------------
    PL-300 demo: SQL Server instance configuration.
 
-   Creates a dedicated SQL-authentication sysadmin login for the class and
-   leaves the built-in `sa` account disabled. Mixed-mode authentication, TCP/IP
-   and the Windows firewall are handled by bootstrap.ps1 - those are host-level
-   settings, not T-SQL.
+   The class login itself is created by Terraform's
+   azurerm_mssql_virtual_machine resource (the SQL IaaS Agent extension), which
+   also enables mixed-mode authentication, TCP/IP and the guest firewall rule.
+   This script confirms that login has sysadmin, disables `sa`, and tunes the
+   instance for a machine shared with Power BI Desktop.
+
+   Deliberately does NOT set the login's password: this script runs *as* that
+   login, the password is already correct, and re-setting it would be a
+   needless way to lock the class out of its own SQL Server.
 
    Invoked as:
-     sqlcmd -S localhost -E -b -i configure-sql.sql \
-            -v SqlLogin="pl300sql" SqlPassword="..."
+     sqlcmd -S localhost -U pl300sql -P ... -b -i configure-sql.sql
+            (with :setvar SqlLogin supplied by a wrapper - see bootstrap.ps1)
 
    Idempotent: safe to re-run.
    --------------------------------------------------------------------------- */
@@ -17,27 +22,15 @@
 SET NOCOUNT ON;
 GO
 
-DECLARE @login    sysname       = N'$(SqlLogin)';
-DECLARE @password nvarchar(256) = N'$(SqlPassword)';
-DECLARE @sql      nvarchar(max);
+DECLARE @login sysname      = N'$(SqlLogin)';
+DECLARE @sql   nvarchar(max);
 
 IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = @login)
 BEGIN
-    SET @sql = N'CREATE LOGIN ' + QUOTENAME(@login)
-             + N' WITH PASSWORD = ' + QUOTENAME(@password, '''')
-             + N', DEFAULT_DATABASE = [master], CHECK_EXPIRATION = OFF, CHECK_POLICY = ON;';
-    EXEC (@sql);
-    PRINT 'Created login: ' + @login;
-END
-ELSE
-BEGIN
-    SET @sql = N'ALTER LOGIN ' + QUOTENAME(@login)
-             + N' WITH PASSWORD = ' + QUOTENAME(@password, '''')
-             + N', CHECK_POLICY = ON;';
-    EXEC (@sql);
-    SET @sql = N'ALTER LOGIN ' + QUOTENAME(@login) + N' ENABLE;';
-    EXEC (@sql);
-    PRINT 'Updated existing login: ' + @login;
+    /* Should not happen - Terraform creates it - but keep the script usable
+       standalone. No password available here, so this is a hard stop. */
+    RAISERROR('Login %s does not exist. It is created by azurerm_mssql_virtual_machine.', 16, 1, @login);
+    RETURN;
 END
 
 IF NOT EXISTS (

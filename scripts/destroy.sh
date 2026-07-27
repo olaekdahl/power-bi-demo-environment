@@ -21,6 +21,8 @@ if [[ "${AUTO_APPROVE:-0}" != "1" ]]; then
   [[ "$confirm" == "$RG" ]] || die "Confirmation did not match. Nothing was deleted."
 fi
 
+ensure_vm_running_for_terraform
+
 info "terraform destroy ..."
 terraform -chdir="$TF_DIR" destroy -auto-approve -input=false
 

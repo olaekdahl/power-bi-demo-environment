@@ -281,12 +281,42 @@ Invoke-Step 'Install SQL Server Management Studio' {
 }
 
 Invoke-Step 'Install supporting tools' {
-    # Not strictly required for PL-300, but DAX Studio and Tabular Editor come
-    # up constantly once the class reaches modelling and DAX optimisation.
-    foreach ($pkg in 'daxstudio', 'tabulareditor', '7zip', 'notepadplusplus') {
+    # Not strictly required for PL-300, but DAX Studio comes up constantly once
+    # the class reaches modelling and DAX optimisation.
+    # (Tabular Editor is handled separately - there is no Chocolatey package for
+    # it; `choco install tabulareditor` fails with "package was not found".)
+    foreach ($pkg in 'daxstudio', '7zip', 'notepadplusplus') {
         try { Install-ChocoPackage -Id $pkg }
         catch { Write-Log "    optional package '$pkg' failed: $($_.Exception.Message)" -Level WARN }
     }
+}
+
+Invoke-Step 'Install Tabular Editor (portable)' {
+    # Tabular Editor 2 ships as a portable zip on GitHub and needs no installer,
+    # which is also why nobody maintains a Chocolatey package for it.
+    $dest = Join-Path $Paths.Root 'Tools\TabularEditor'
+    $exe  = Join-Path $dest 'TabularEditor.exe'
+    if (Test-Path $exe) {
+        Write-Log '    already present'
+    }
+    else {
+        New-Item -ItemType Directory -Path $dest -Force | Out-Null
+        $zip = Join-Path $Paths.Downloads 'TabularEditor.Portable.zip'
+        # Force a fresh download: Get-RemoteFile's cache check assumes installers
+        # larger than 1 MB and this zip is smaller.
+        Remove-Item $zip -Force -ErrorAction SilentlyContinue
+        Invoke-WebRequest -UseBasicParsing -TimeoutSec 600 -OutFile $zip `
+            -Uri 'https://github.com/TabularEditor/TabularEditor/releases/latest/download/TabularEditor.Portable.zip'
+        Expand-Archive -Path $zip -DestinationPath $dest -Force
+        if (-not (Test-Path $exe)) { throw 'TabularEditor.exe missing after extracting the portable zip.' }
+    }
+
+    $shell = New-Object -ComObject WScript.Shell
+    $lnk = $shell.CreateShortcut('C:\Users\Public\Desktop\Tabular Editor.lnk')
+    $lnk.TargetPath = $exe
+    $lnk.WorkingDirectory = $dest
+    $lnk.Description = 'Tabular Editor 2 (portable)'
+    $lnk.Save()
 }
 
 # --------------------------------------------------------------------------- #
@@ -304,24 +334,99 @@ function Get-SqlCmdPath {
 }
 
 function Invoke-SqlFile {
+    <#
+        Runs a .sql file against the local instance.
+
+        Authentication is SQL, not Windows: the marketplace image does not make
+        NT AUTHORITY\SYSTEM (which is what the Custom Script Extension runs as)
+        a sysadmin, so -E fails with Msg 15247. Terraform's
+        azurerm_mssql_virtual_machine resource creates this login with sysadmin
+        before the extension runs.
+
+        Variables are passed by generating a wrapper script that declares them
+        with :setvar and then :r's the real file, rather than by using
+        `sqlcmd -v`. sqlcmd's -v parser cannot handle an unquoted value
+        containing a colon, so a Windows path like C:\PL300\Backups\x.bak is
+        truncated at the drive letter and the rest is read as a stray argument.
+    #>
     param(
         [Parameter(Mandatory)][string] $Path,
         [hashtable] $Variables = @{},
         [int] $TimeoutSeconds = 3600
     )
-    $sqlcmd = Get-SqlCmdPath
-    $argv = @('-S', 'localhost', '-E', '-b', '-l', '60', '-t', "$TimeoutSeconds", '-i', $Path)
-    if ($Variables.Count) {
-        $argv += '-v'
-        foreach ($k in $Variables.Keys) { $argv += "$k=$($Variables[$k])" }
+    $sqlcmd  = Get-SqlCmdPath
+    $wrapper = Join-Path $env:TEMP ('pl300_' + [IO.Path]::GetRandomFileName() + '.sql')
+    try {
+        # @() matters: with a single variable the foreach yields a bare string,
+        # and `+=` on a string concatenates instead of appending - which put
+        # :setvar and :r on the same line and produced
+        # "Syntax error ... near command ':setvar'".
+        $lines = @(foreach ($k in $Variables.Keys) { ':setvar {0} "{1}"' -f $k, $Variables[$k] })
+        $lines += ':r "{0}"' -f $Path
+        Set-Content -Path $wrapper -Value $lines -Encoding ascii
+
+        Write-Log "    sqlcmd -i $(Split-Path $Path -Leaf) [$(($Variables.Keys | Sort-Object) -join ', ')]"
+        # 2>&1 on a native command turns its stderr into ErrorRecords, which
+        # $ErrorActionPreference='Stop' escalates to a terminating error before
+        # we can log the output. Relax it just around the call so sqlcmd's own
+        # diagnostics reach the log and $LASTEXITCODE stays authoritative.
+        $out = & {
+            $ErrorActionPreference = 'Continue'
+            & $sqlcmd -S 'localhost' -U $SqlAdminLogin -P $SqlAdminPassword `
+                      -b -l 60 -t "$TimeoutSeconds" -i $wrapper 2>&1
+        }
+        $out | ForEach-Object { Add-Content -Path $LogFile -Value "        $_" -Encoding utf8 }
+        if ($LASTEXITCODE -ne 0) { throw "sqlcmd failed ($LASTEXITCODE) on $(Split-Path $Path -Leaf)" }
     }
-    Write-Log "    sqlcmd -i $(Split-Path $Path -Leaf) $(($Variables.Keys | ForEach-Object { "-v $_" }) -join ' ')"
-    $out = & $sqlcmd @argv 2>&1
-    $out | ForEach-Object { Add-Content -Path $LogFile -Value "        $_" -Encoding utf8 }
-    if ($LASTEXITCODE -ne 0) { throw "sqlcmd failed ($LASTEXITCODE) on $(Split-Path $Path -Leaf)" }
+    finally {
+        # The wrapper holds the SQL password when configure-sql.sql runs.
+        Remove-Item $wrapper -Force -ErrorAction SilentlyContinue
+    }
 }
 
-Invoke-Step 'Enable SQL Server mixed-mode auth and TCP/IP' -Critical {
+function Invoke-SqlQuery {
+    <#
+        Single-statement query returning raw output lines.
+
+        Retries, because this script restarts the SQL Server service and an
+        instance that has only just come back can reject a perfectly valid login
+        for a few seconds while it finishes recovery.
+    #>
+    param(
+        [Parameter(Mandatory)][string] $Query,
+        [string] $Database = 'master',
+        [int] $Retries = 6,
+        [switch] $PassThruFailure
+    )
+    $sqlcmd = Get-SqlCmdPath
+    $out = $null
+    for ($i = 1; $i -le $Retries; $i++) {
+        $out = & {
+            $ErrorActionPreference = 'Continue'
+            & $sqlcmd -S 'localhost' -U $SqlAdminLogin -P $SqlAdminPassword `
+                      -d $Database -b -h -1 -W -Q $Query 2>&1
+        }
+        if ($LASTEXITCODE -eq 0) { return $out }
+        if ($i -lt $Retries) {
+            Write-Log "    sqlcmd query failed (attempt $i/$Retries), retrying in 10s" -Level WARN
+            Start-Sleep -Seconds 10
+        }
+    }
+    if ($PassThruFailure) { return $out }
+    throw "sqlcmd query failed after $Retries attempts: $(($out | Select-Object -Last 3) -join ' | ')"
+}
+
+function Wait-ForSqlLogin {
+    <# The SQL IaaS extension creates the login shortly before this script runs. #>
+    Invoke-SqlQuery -Query 'SET NOCOUNT ON; SELECT 1;' | Out-Null
+    Write-Log "    connected to SQL Server as '$SqlAdminLogin'"
+}
+
+# Terraform's azurerm_mssql_virtual_machine already enabled mixed-mode auth,
+# TCP/IP and the firewall rule before this script runs. This step re-asserts it,
+# pins the port to 1433 on every IP entry, and starts SQL Browser - so it is
+# belt-and-braces rather than load-bearing, hence not Critical.
+Invoke-Step 'Re-assert SQL Server TCP/IP configuration' {
     $instanceKey = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server' -ErrorAction Stop |
                    Where-Object { $_.PSChildName -match '^MSSQL\d+\.MSSQLSERVER$' } |
                    Select-Object -First 1
@@ -329,17 +434,33 @@ Invoke-Step 'Enable SQL Server mixed-mode auth and TCP/IP' -Critical {
     $base = $instanceKey.PSPath
     Write-Log "    instance key: $($instanceKey.PSChildName)"
 
+    # Only restart SQL Server if a value actually changed. Restarting an
+    # instance that is already configured correctly is pure downside: it briefly
+    # rejects valid logins while it recovers, which is what made the following
+    # steps fail intermittently.
+    $changed = $false
+    function Set-IfDifferent {
+        param($Path, $Name, $Value, $Type)
+        $current = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue).$Name
+        if ("$current" -ne "$Value") {
+            Set-ItemProperty -Path $Path -Name $Name -Value $Value -Type $Type -Force
+            Write-Log "    changed $Name : '$current' -> '$Value'"
+            $script:sqlRegistryChanged = $true
+        }
+    }
+    $script:sqlRegistryChanged = $false
+
     # LoginMode 2 = SQL Server and Windows Authentication.
-    Set-ItemProperty -Path (Join-Path $base 'MSSQLServer') -Name 'LoginMode' -Value 2 -Type DWord -Force
+    Set-IfDifferent -Path (Join-Path $base 'MSSQLServer') -Name 'LoginMode' -Value 2 -Type DWord
 
     # Enable the TCP/IP protocol and pin it to 1433.
     $tcp = Join-Path $base 'MSSQLServer\SuperSocketNetLib\Tcp'
-    Set-ItemProperty -Path $tcp -Name 'Enabled' -Value 1 -Type DWord -Force
+    Set-IfDifferent -Path $tcp -Name 'Enabled' -Value 1 -Type DWord
     $ipAll = Join-Path $tcp 'IPAll'
-    Set-ItemProperty -Path $ipAll -Name 'TcpPort'         -Value '1433' -Force
-    Set-ItemProperty -Path $ipAll -Name 'TcpDynamicPorts' -Value ''     -Force
+    Set-IfDifferent -Path $ipAll -Name 'TcpPort'         -Value '1433' -Type String
+    Set-IfDifferent -Path $ipAll -Name 'TcpDynamicPorts' -Value ''     -Type String
     foreach ($ipKey in Get-ChildItem $tcp | Where-Object { $_.PSChildName -match '^IP\d+$' }) {
-        Set-ItemProperty -Path $ipKey.PSPath -Name 'Enabled' -Value 1 -Type DWord -Force
+        Set-IfDifferent -Path $ipKey.PSPath -Name 'Enabled' -Value 1 -Type DWord
     }
 
     New-NetFirewallRule -DisplayName 'SQL Server (TCP 1433)' -Direction Inbound -Action Allow `
@@ -349,31 +470,36 @@ Invoke-Step 'Enable SQL Server mixed-mode auth and TCP/IP' -Critical {
 
     Set-Service -Name 'SQLBrowser' -StartupType Automatic -ErrorAction SilentlyContinue
     Start-Service -Name 'SQLBrowser' -ErrorAction SilentlyContinue
-
-    Write-Log '    restarting MSSQLSERVER to apply protocol changes'
-    Restart-Service -Name 'MSSQLSERVER' -Force
-    # SQL accepts connections a moment after the service reports Running.
-    for ($i = 0; $i -lt 30; $i++) {
-        if ((Get-Service MSSQLSERVER).Status -eq 'Running') { break }
-        Start-Sleep -Seconds 2
-    }
-    Start-Sleep -Seconds 10
     Set-Service -Name 'MSSQLSERVER' -StartupType Automatic
 
-    # Restart-Service -Force stopped SQL Agent as a dependent service and does
-    # not bring it back.
-    try {
-        Set-Service -Name 'SQLSERVERAGENT' -StartupType Automatic -ErrorAction Stop
-        Start-Service -Name 'SQLSERVERAGENT' -ErrorAction Stop
+    if (-not $script:sqlRegistryChanged) {
+        Write-Log '    already configured by the SQL IaaS extension - no restart needed'
     }
-    catch { Write-Log '    SQL Server Agent did not restart (not needed for the demos)' -Level WARN }
+    else {
+        Write-Log '    restarting MSSQLSERVER to apply protocol changes'
+        Restart-Service -Name 'MSSQLSERVER' -Force
+        for ($i = 0; $i -lt 30; $i++) {
+            if ((Get-Service MSSQLSERVER).Status -eq 'Running') { break }
+            Start-Sleep -Seconds 2
+        }
+        Start-Sleep -Seconds 15
+
+        # Restart-Service -Force stopped SQL Agent as a dependent service and
+        # does not bring it back.
+        try {
+            Set-Service -Name 'SQLSERVERAGENT' -StartupType Automatic -ErrorAction Stop
+            Start-Service -Name 'SQLSERVERAGENT' -ErrorAction Stop
+        }
+        catch { Write-Log '    SQL Server Agent did not restart (not needed for the demos)' -Level WARN }
+    }
 }
 
-Invoke-Step 'Create SQL login and tune instance' -Critical {
+Invoke-Step 'Confirm SQL login and tune instance' -Critical {
+    Wait-ForSqlLogin
     $sql = Join-Path $ScriptDir 'configure-sql.sql'
     if (-not (Test-Path $sql)) { throw "configure-sql.sql not found in $ScriptDir" }
     Copy-Item $sql -Destination $Paths.Scripts -Force
-    Invoke-SqlFile -Path $sql -Variables @{ SqlLogin = $SqlAdminLogin; SqlPassword = $SqlAdminPassword }
+    Invoke-SqlFile -Path $sql -Variables @{ SqlLogin = $SqlAdminLogin }
 }
 
 Invoke-Step 'Download AdventureWorks backups' -Critical {
@@ -513,22 +639,40 @@ Invoke-Step 'Verify installation' {
 
     $checks['SqlService'] = (Get-Service MSSQLSERVER -ErrorAction SilentlyContinue).Status.ToString()
 
+    # Chocolatey puts DAX Studio under Program Files on 64-bit, not (x86).
+    foreach ($tool in @(
+        @{ Name = 'DaxStudio';     Paths = @('C:\Program Files\DAX Studio\DaxStudio.exe',
+                                             'C:\Program Files (x86)\DAX Studio\DaxStudio.exe') },
+        @{ Name = 'TabularEditor'; Paths = @((Join-Path $Paths.Root 'Tools\TabularEditor\TabularEditor.exe')) }
+    )) {
+        $found = $tool.Paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+        $checks[$tool.Name] = if ($found) { $found } else { 'NOT FOUND' }
+    }
+
     try {
-        $sqlcmd = Get-SqlCmdPath
-        $q = 'SET NOCOUNT ON; SELECT name FROM sys.databases WHERE name LIKE ''AdventureWorks%'' ORDER BY name;'
-        $dbs = & $sqlcmd -S localhost -E -b -h -1 -W -Q $q 2>&1 |
+        $dbs = Invoke-SqlQuery -Query 'SET NOCOUNT ON; SELECT name FROM sys.databases WHERE name LIKE ''AdventureWorks%'' ORDER BY name;' |
                Where-Object { $_ -match '^AdventureWorks' }
         $checks['Databases'] = ($dbs -join ', ')
 
-        $rows = & $sqlcmd -S localhost -E -b -h -1 -W -d AdventureWorksDW2022 `
-                  -Q 'SET NOCOUNT ON; SELECT COUNT(*) FROM dbo.FactInternetSales;' 2>&1 |
-                Where-Object { $_ -match '^\d+$' } | Select-Object -First 1
-        $checks['FactInternetSalesRows'] = "$rows"
+        $checks['FactInternetSalesRows'] = "$(
+            Invoke-SqlQuery -Database 'AdventureWorksDW2022' `
+                -Query 'SET NOCOUNT ON; SELECT COUNT(*) FROM dbo.FactInternetSales;' |
+            Where-Object { $_ -match '^\d+$' } | Select-Object -First 1)"
 
-        $tcp = & $sqlcmd -S localhost -E -b -h -1 -W `
-                 -Q "SET NOCOUNT ON; SELECT CAST(SERVERPROPERTY('IsIntegratedSecurityOnly') AS varchar(3));" 2>&1 |
-               Where-Object { $_ -match '^\d+$' } | Select-Object -First 1
-        $checks['WindowsAuthOnly'] = "$tcp"
+        # The fact table's date span drives every time-intelligence demo, so
+        # record it here rather than making the instructor go looking.
+        $checks['FactDateRange'] = (Invoke-SqlQuery -Database 'AdventureWorksDW2022' `
+            -Query 'SET NOCOUNT ON; SELECT CONVERT(varchar(10), MIN(OrderDate), 23) + '' to '' + CONVERT(varchar(10), MAX(OrderDate), 23) FROM dbo.FactInternetSales;' |
+            Where-Object { $_ -match '^\d{4}-' } | Select-Object -First 1)
+
+        $checks['WindowsAuthOnly'] = "$(
+            Invoke-SqlQuery -Query "SET NOCOUNT ON; SELECT CAST(SERVERPROPERTY('IsIntegratedSecurityOnly') AS varchar(3));" |
+            Where-Object { $_ -match '^\d+$' } | Select-Object -First 1)"
+
+        $checks['OltpTableCount'] = "$(
+            Invoke-SqlQuery -Database 'AdventureWorks2022' `
+                -Query 'SET NOCOUNT ON; SELECT COUNT(*) FROM sys.tables;' |
+            Where-Object { $_ -match '^\d+$' } | Select-Object -First 1)"
     }
     catch {
         $checks['Databases'] = "query failed: $($_.Exception.Message)"

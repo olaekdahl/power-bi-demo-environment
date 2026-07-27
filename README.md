@@ -15,7 +15,7 @@ Course reference: [PL-300T00 study guide](https://learn.microsoft.com/en-us/trai
 | VM | `Standard_D4as_v4` — 4 vCPU / 16 GB, Premium SSD 256 GB |
 | Image | `MicrosoftSQLServer:sql2022-ws2022:sqldev-gen2` — Windows Server 2022 + SQL Server 2022 **Developer** |
 | Databases | `AdventureWorksDW2022` (star schema), `AdventureWorks2022` (OLTP) |
-| Tools | Power BI Desktop, SSMS, DAX Studio, Tabular Editor, 7-Zip, Notepad++ |
+| Tools | Power BI Desktop, SSMS, DAX Studio, Tabular Editor 2, 7-Zip, Notepad++ |
 | Demo files | 22 files on the VM at `C:\PL300\Data`, also in blob storage |
 | Access | RDP 3389 and SQL 1433, restricted to **your public IP only** |
 | Cost control | Nightly auto-shutdown, plus start/stop scripts |
@@ -146,11 +146,40 @@ therefore doesn't taint the Terraform resource or block the rest of the build.
 `scripts/verify.sh` is what reports the real state, and
 `scripts/rerun-bootstrap.sh` repairs in place — every step is idempotent.
 
+**SQL is configured through the SQL IaaS Agent extension, not the bootstrap
+script.** The third build got further and then failed on `Msg 15247, User does
+not have permission to perform this action`: the marketplace SQL image does not
+grant `NT AUTHORITY\SYSTEM` the sysadmin role, and the Custom Script Extension
+runs as SYSTEM — so the bootstrap cannot configure SQL Server over Windows
+authentication at all. `azurerm_mssql_virtual_machine` creates a
+SQL-authentication sysadmin login through the Azure control plane (and enables
+mixed-mode auth, TCP/IP and the guest firewall rule), and the bootstrap then
+connects with that login instead of `-E`.
+
+**`sqlcmd -v` is not used for paths.** It cannot parse an unquoted value
+containing a colon: `-v BakFile=C:\PL300\Backups\x.bak` is truncated at the drive
+letter and the remainder is read as a stray argument. `Invoke-SqlFile` instead
+generates a small wrapper script that declares the values with `:setvar` (quoted)
+and then `:r`'s the real file.
+
+**Tabular Editor comes from its GitHub release, not Chocolatey.** There is no
+`tabulareditor` Chocolatey package — `choco install tabulareditor` fails with
+"package was not found with the source(s) listed". It ships as a portable zip, so
+the bootstrap unpacks it to `C:\PL300\Tools\TabularEditor` and drops a desktop
+shortcut.
+
+**Terraform needs the VM running.** `azurerm_mssql_virtual_machine` cannot be
+refreshed while the VM is deallocated — the Azure API returns
+`VmNotRunning: … is not in running state` and the plan aborts before it produces
+anything. Since the VM spends most of its life deallocated to save money, every
+`plan`/`apply`/`destroy` has to start it first. `deploy.sh` and `destroy.sh` do
+that automatically; if you run Terraform by hand, run `./scripts/start-vm.sh`
+first.
+
 **SQL memory is capped at 6 GB.** SQL Server would otherwise take almost all 16 GB
 and make Power BI Desktop feel broken in front of a class.
 
-**`sa` stays disabled.** A dedicated sysadmin login (`pl300sql`) is created for
-SQL authentication instead.
+**`sa` stays disabled.** `pl300sql` is the sysadmin login for the class.
 
 ## Requirements
 

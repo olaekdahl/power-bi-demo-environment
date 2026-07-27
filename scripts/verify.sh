@@ -90,6 +90,8 @@ printf '  %-24s %s\n' "SQL Server service"  "$(jq -r '.sqlService // "unknown"' 
 printf '  %-24s %s\n' "Listening on 1433"   "$(jq -r '.tcp1433 // false' <<<"$json")"
 printf '  %-24s %s\n' "Power BI Desktop"    "$(jq -r '.verify.PowerBIDesktop // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "SSMS"               "$(jq -r '.verify.SSMS // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "DAX Studio"         "$(jq -r '.verify.DaxStudio // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "Tabular Editor"     "$(jq -r '.verify.TabularEditor // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "Databases"          "$(jq -r '.verify.Databases // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "FactInternetSales"  "$(jq -r '.verify.FactInternetSalesRows // "unknown"' <<<"$json") rows"
 printf '  %-24s %s\n' "Demo files"         "$(jq -r '.dataFiles // 0' <<<"$json") files"

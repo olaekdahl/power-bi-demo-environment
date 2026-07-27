@@ -52,6 +52,22 @@ require_azure_login() {
   az account show >/dev/null 2>&1 || die "Not logged in to Azure. Run: az login"
 }
 
+# The SQL IaaS resource (azurerm_mssql_virtual_machine) cannot be read while the
+# VM is stopped - the Azure API returns "VmNotRunning" 400 and Terraform aborts
+# with "Planning failed". Since the VM is deallocated most of the time to save
+# money, any terraform plan/apply/destroy has to start it first.
+ensure_vm_running_for_terraform() {
+  local rg vm state
+  rg="$(rg_name)"; vm="$(vm_name)"
+  state="$(vm_power_state)"
+  [[ -z "$state" ]] && return 0          # nothing deployed yet
+  [[ "$state" == "running" ]] && return 0
+
+  info "VM is '$state'; starting it so Terraform can read the SQL VM resource ..."
+  az vm start -g "$rg" -n "$vm" -o none
+  ok "VM started"
+}
+
 vm_power_state() {
   az vm get-instance-view -g "$(rg_name)" -n "$(vm_name)" \
     --query "instanceView.statuses[?starts_with(code,'PowerState/')].code | [0]" -o tsv 2>/dev/null \

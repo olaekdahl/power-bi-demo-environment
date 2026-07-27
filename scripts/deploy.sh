@@ -48,6 +48,8 @@ allowed_source_ip = "$ALLOWED_IP"
 EOF
 ok "wrote terraform/terraform.tfvars"
 
+ensure_vm_running_for_terraform
+
 info "terraform init ..."
 terraform -chdir="$TF_DIR" init -upgrade -input=false
 

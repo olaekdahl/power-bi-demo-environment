@@ -293,6 +293,34 @@ resource "azurerm_windows_virtual_machine" "pl300" {
   }
 }
 
+# The SQL Server marketplace image does NOT grant NT AUTHORITY\SYSTEM the
+# sysadmin role, and the Custom Script Extension runs as SYSTEM - so the
+# bootstrap script cannot configure SQL Server over Windows authentication at
+# all (it fails with Msg 15247, "User does not have permission to perform this
+# action"). The SQL IaaS Agent extension creates a SQL-authentication sysadmin
+# login through the Azure control plane instead, and the bootstrap then connects
+# with that. It also enables mixed-mode auth, turns on TCP/IP and opens the
+# Windows firewall for 1433.
+#
+# "PUBLIC" refers to the guest firewall only - inbound 1433 is still restricted
+# to var.allowed_source_ip by the network security group.
+resource "azurerm_mssql_virtual_machine" "pl300" {
+  virtual_machine_id = azurerm_windows_virtual_machine.pl300.id
+  sql_license_type   = "PAYG" # Developer edition carries no SQL licence charge
+
+  sql_connectivity_type            = "PUBLIC"
+  sql_connectivity_port            = 1433
+  sql_connectivity_update_username = var.sql_admin_login
+  sql_connectivity_update_password = local.admin_password
+
+  tags = var.tags
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+  }
+}
+
 # Lets anything running on the VM read the demo files from blob storage with no
 # embedded credential - handy for the "connect to cloud data with a managed
 # identity" discussion, and for extending bootstrap.ps1 later.
@@ -378,6 +406,8 @@ resource "azurerm_virtual_machine_extension" "bootstrap" {
 
   depends_on = [
     azurerm_storage_blob.demo_file,
+    # The bootstrap authenticates to SQL with the login this creates.
+    azurerm_mssql_virtual_machine.pl300,
   ]
 }
 
