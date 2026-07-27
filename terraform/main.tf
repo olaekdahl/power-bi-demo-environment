@@ -37,6 +37,7 @@ locals {
     filemd5("${path.module}/../scripts/bootstrap.ps1"),
     filemd5("${path.module}/../scripts/sql/configure-sql.sql"),
     filemd5("${path.module}/../scripts/sql/restore-adventureworks.sql"),
+    filemd5("${path.module}/../scripts/sql/create-spatial-demo.sql"),
     data.archive_file.demo_data.output_md5,
   ]))
 }
@@ -224,6 +225,15 @@ resource "azurerm_storage_blob" "configure_sql" {
   content_md5          = filemd5("${path.module}/../scripts/sql/configure-sql.sql")
 }
 
+resource "azurerm_storage_blob" "create_spatial_demo" {
+  name                 = "create-spatial-demo.sql"
+  storage_container_id = azurerm_storage_container.bootstrap.id
+  type                 = "Block"
+  content_type         = local.content_types["sql"]
+  source               = "${path.module}/../scripts/sql/create-spatial-demo.sql"
+  content_md5          = filemd5("${path.module}/../scripts/sql/create-spatial-demo.sql")
+}
+
 resource "azurerm_storage_blob" "restore_adventureworks" {
   name                 = "restore-adventureworks.sql"
   storage_container_id = azurerm_storage_container.bootstrap.id
@@ -379,6 +389,7 @@ resource "azurerm_virtual_machine_extension" "bootstrap" {
       "${azurerm_storage_blob.bootstrap_ps1.url}${data.azurerm_storage_account_blob_container_sas.bootstrap.sas}",
       "${azurerm_storage_blob.configure_sql.url}${data.azurerm_storage_account_blob_container_sas.bootstrap.sas}",
       "${azurerm_storage_blob.restore_adventureworks.url}${data.azurerm_storage_account_blob_container_sas.bootstrap.sas}",
+      "${azurerm_storage_blob.create_spatial_demo.url}${data.azurerm_storage_account_blob_container_sas.bootstrap.sas}",
       "${azurerm_storage_blob.demo_data_zip.url}${data.azurerm_storage_account_blob_container_sas.bootstrap.sas}",
     ]
     # Quoting here crosses two parsers: the extension writes commandToExecute to
@@ -398,6 +409,7 @@ resource "azurerm_virtual_machine_extension" "bootstrap" {
       # this is worth.
       "-ExtraChocoPackages \"${join(",", var.extra_choco_packages)}\"",
       "-PythonPackages \"${join(",", var.python_packages)}\"",
+      "-RPackages \"${join(",", var.r_packages)}\"",
       "-VsCodeExtensions \"${join(",", var.vscode_extensions)}\"",
       "-PayloadVersion \"${local.payload_version}\"",
     ])

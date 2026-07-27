@@ -38,6 +38,7 @@ param(
     # Comma-separated lists supplied by Terraform.
     [string] $ExtraChocoPackages = '',
     [string] $PythonPackages     = 'pandas,matplotlib,numpy,seaborn,openpyxl,ipykernel',
+    [string] $RPackages          = 'ggplot2,dplyr,scales,forecast',
     [string] $VsCodeExtensions   = 'ms-python.python,ms-toolsai.jupyter,ms-mssql.mssql,powerquery.vscode-powerquery',
 
     # Hash of the whole payload (this script, the two .sql files, the demo data
@@ -382,6 +383,61 @@ Invoke-Step 'Install Python and the libraries Power BI needs' {
     $script:PythonExe = $python
 }
 
+Invoke-Step 'Install R and the packages for R visuals' {
+    Install-ChocoPackage -Id 'r.project'
+
+    # Chocolatey installs to C:\Program Files\R\R-<version>. Take the newest if
+    # several are present.
+    $rHome = Get-ChildItem 'C:\Program Files\R' -Directory -ErrorAction SilentlyContinue |
+             Where-Object { $_.Name -match '^R-\d' } |
+             Sort-Object Name -Descending | Select-Object -First 1
+    if (-not $rHome) { throw 'R installed but C:\Program Files\R\R-* was not found.' }
+
+    $rscript = Join-Path $rHome.FullName 'bin\x64\Rscript.exe'
+    if (-not (Test-Path $rscript)) { $rscript = Join-Path $rHome.FullName 'bin\Rscript.exe' }
+    if (-not (Test-Path $rscript)) { throw "Rscript.exe not found under $($rHome.FullName)." }
+    Write-Log "    R home: $($rHome.FullName)"
+
+    $pkgs = @($RPackages -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($pkgs.Count) {
+        # Install into the R installation's own library (writable by SYSTEM and
+        # visible to every user) rather than a per-user library, which is where R
+        # would otherwise put them and which the RDP account could not see.
+        $libPath = (Join-Path $rHome.FullName 'library') -replace '\\', '/'
+        $want    = ($pkgs | ForEach-Object { "'$_'" }) -join ','
+        $rCode   = @"
+lib <- '$libPath'
+need <- setdiff(c($want), rownames(installed.packages(lib.loc = lib)))
+if (length(need) == 0) {
+  cat('all R packages already installed\n')
+} else {
+  cat('installing:', paste(need, collapse = ', '), '\n')
+  install.packages(need, lib = lib, repos = 'https://cloud.r-project.org', quiet = TRUE)
+}
+"@
+        $script = Join-Path $Paths.Downloads 'install-r-packages.R'
+        Set-Content -Path $script -Value $rCode -Encoding ascii
+        Write-Log "    installing R packages: $($pkgs -join ' ') (this can take several minutes)"
+        Invoke-Native -FilePath $rscript -Arguments @('--vanilla', $script) | Out-Null
+
+        # Loading is the real test - install.packages() does not fail loudly when
+        # a dependency is unavailable for the platform.
+        $verify = ($pkgs | ForEach-Object { "library($_)" }) -join '; '
+        $probe = Invoke-Native -FilePath $rscript -Arguments @(
+            '--vanilla', '-e',
+            "suppressMessages({$verify}); cat(as.character(packageVersion('$($pkgs[0])')))")
+        Write-Log "    R packages load OK ($($pkgs[0]) $($probe | Select-Object -Last 1))"
+    }
+
+    # Power BI Desktop reads this key to populate Options > R scripting.
+    foreach ($key in 'HKLM:\SOFTWARE\R-core\R', 'HKLM:\SOFTWARE\R-core\R64') {
+        if (Test-Path $key) {
+            Write-Log "    registered: $key -> $((Get-ItemProperty $key).InstallPath)"
+        }
+    }
+    $script:RHome = $rHome.FullName
+}
+
 Invoke-Step 'Install VS Code extensions' {
     <#
         Extensions must NOT be installed with a bare `code --install-extension`
@@ -584,7 +640,7 @@ function Invoke-SqlFile {
         $out = & {
             $ErrorActionPreference = 'Continue'
             & $sqlcmd -S 'localhost' -U $SqlAdminLogin -P $SqlAdminPassword `
-                      -b -l 60 -t "$TimeoutSeconds" -i $wrapper 2>&1
+                      -I -b -l 60 -t "$TimeoutSeconds" -i $wrapper 2>&1
         }
         $out | ForEach-Object { Add-Content -Path $LogFile -Value "        $_" -Encoding utf8 }
         if ($LASTEXITCODE -ne 0) { throw "sqlcmd failed ($LASTEXITCODE) on $(Split-Path $Path -Leaf)" }
@@ -615,7 +671,7 @@ function Invoke-SqlQuery {
         $out = & {
             $ErrorActionPreference = 'Continue'
             & $sqlcmd -S 'localhost' -U $SqlAdminLogin -P $SqlAdminPassword `
-                      -d $Database -b -h -1 -W -Q $Query 2>&1
+                      -d $Database -I -b -h -1 -W -Q $Query 2>&1
         }
         if ($LASTEXITCODE -eq 0) { return $out }
         if ($i -lt $Retries) {
@@ -748,6 +804,13 @@ Invoke-Step 'Restore AdventureWorks databases' -Critical {
         }
         Invoke-SqlFile -Path $sql -Variables @{ DbName = $db; BakFile = $bak }
     }
+}
+
+Invoke-Step 'Create the spatial demo database' {
+    $sql = Join-Path $ScriptDir 'create-spatial-demo.sql'
+    if (-not (Test-Path $sql)) { throw "create-spatial-demo.sql not found in $ScriptDir" }
+    Copy-Item $sql -Destination $Paths.Scripts -Force
+    Invoke-SqlFile -Path $sql
 }
 
 # --------------------------------------------------------------------------- #
@@ -908,7 +971,11 @@ Invoke-Step 'Verify installation' {
                                              "${env:ProgramFiles(x86)}\Microsoft VS Code\Code.exe") },
         @{ Name = 'Git';           Paths = @("$env:ProgramFiles\Git\cmd\git.exe") },
         @{ Name = 'Python';        Paths = @('C:\Python312\python.exe',
-                                             "$env:ProgramFiles\Python312\python.exe") }
+                                             "$env:ProgramFiles\Python312\python.exe") },
+        @{ Name = 'R';             Paths = @(
+                (Get-ChildItem 'C:\Program Files\R' -Directory -EA SilentlyContinue |
+                 Where-Object { $_.Name -match '^R-\d' } | Sort-Object Name -Descending |
+                 ForEach-Object { Join-Path $_.FullName 'bin\x64\Rscript.exe' })) }
     )) {
         $found = $tool.Paths | Where-Object { Test-Path $_ } | Select-Object -First 1
         $checks[$tool.Name] = if ($found) { $found } else { 'NOT FOUND' }
@@ -924,6 +991,23 @@ Invoke-Step 'Verify installation' {
         }
         catch {
             $checks['PythonDataLibs'] = "IMPORT FAILED: $($_.Exception.Message)"
+        }
+    }
+
+    # As with Python, a bare R runtime is not enough for Power BI's R visuals -
+    # the packages have to load.
+    if ($checks['R'] -and $checks['R'] -ne 'NOT FOUND') {
+        $rPkgs = @($RPackages -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        $verify = ($rPkgs | ForEach-Object { "library($_)" }) -join '; '
+        try {
+            $out = Invoke-Native -FilePath $checks['R'] -Arguments @(
+                '--vanilla', '-e',
+                "suppressMessages({$verify}); cat(paste(R.version.string, '|', paste(c($(($rPkgs | ForEach-Object { "'$_'" }) -join ',')), collapse=' ')))")
+            $checks['RPackages'] = ($out | Where-Object { $_ -match 'R version' } | Select-Object -First 1)
+            if (-not $checks['RPackages']) { $checks['RPackages'] = ($out | Select-Object -Last 1) }
+        }
+        catch {
+            $checks['RPackages'] = "LOAD FAILED: $($_.Exception.Message)"
         }
     }
 
@@ -960,6 +1044,25 @@ Invoke-Step 'Verify installation' {
             Invoke-SqlQuery -Database 'AdventureWorks2022' `
                 -Query 'SET NOCOUNT ON; SELECT COUNT(*) FROM sys.tables;' |
             Where-Object { $_ -match '^\d+$' } | Select-Object -First 1)"
+
+        # Spatial: confirm the objects exist AND that point-in-polygon agrees
+        # with the assigned regions, which is what a wrong ring order breaks.
+        $checks['SpatialObjects'] = "$(
+            Invoke-SqlQuery -Database 'PL300Demo' `
+                -Query 'SET NOCOUNT ON; SELECT CAST(COUNT(*) AS varchar(10)) FROM sys.views WHERE name LIKE ''vw_%'';' |
+            Where-Object { $_ -match '^\d+$' } | Select-Object -First 1) views"
+
+        $checks['SpatialPointInPolygon'] = (Invoke-SqlQuery -Database 'PL300Demo' -Query @'
+SET NOCOUNT ON;
+SELECT CAST(SUM(CASE WHEN Result = 'Match' THEN 1 ELSE 0 END) AS varchar(10))
+     + '/' + CAST(COUNT(*) AS varchar(10)) + ' stores match'
+FROM dbo.vw_StoreRegionCheck;
+'@ | Where-Object { $_ -match '\d+/\d+' } | Select-Object -First 1)
+
+        $checks['SpatialCustomers'] = "$(
+            Invoke-SqlQuery -Database 'PL300Demo' `
+                -Query 'SET NOCOUNT ON; SELECT CAST(COUNT(*) AS varchar(10)) FROM dbo.CustomerLocation;' |
+            Where-Object { $_ -match '^\d+$' } | Select-Object -First 1) geography points"
     }
     catch {
         $checks['Databases'] = "query failed: $($_.Exception.Message)"
@@ -990,6 +1093,12 @@ Invoke-Step 'Verify installation' {
     if ($checks['Databases'] -notmatch 'AdventureWorksDW2022') { throw 'AdventureWorksDW2022 was not restored.' }
     if ($checks['PythonDataLibs'] -like 'IMPORT FAILED*') {
         throw "Python is installed but Power BI's required libraries are not importable: $($checks['PythonDataLibs'])"
+    }
+    if ($checks['RPackages'] -like 'LOAD FAILED*') {
+        throw "R is installed but its packages will not load: $($checks['RPackages'])"
+    }
+    if ($checks['SpatialPointInPolygon'] -and $checks['SpatialPointInPolygon'] -notmatch '^(\d+)/\1 ') {
+        throw "Spatial demo is inconsistent: $($checks['SpatialPointInPolygon'])"
     }
 }
 

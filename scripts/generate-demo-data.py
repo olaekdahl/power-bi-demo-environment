@@ -83,6 +83,29 @@ STORES = [
     (8, "Contoso Philadelphia", "Philadelphia", "PA", 3, "2021-05-17",  8100),
 ]
 
+# Real coordinates for the store cities, so map visuals land in the right place.
+# Keep in step with scripts/sql/create-spatial-demo.sql, which builds the same
+# geography points and region polygons inside SQL Server.
+STORE_COORDS = {
+    1: (47.6104, -122.2007),   # Bellevue, WA
+    2: (45.5152, -122.6784),   # Portland, OR
+    3: (39.7392, -104.9903),   # Denver, CO
+    4: (44.9778, -93.2650),    # Minneapolis, MN
+    5: (30.2672, -97.7431),    # Austin, TX
+    6: (33.7490, -84.3880),    # Atlanta, GA
+    7: (42.3601, -71.0589),    # Boston, MA
+    8: (39.9526, -75.1652),    # Philadelphia, PA
+}
+
+# Approximate bounding boxes per sales region. Each box contains exactly the two
+# stores assigned to that region, so point-in-polygon demos give a clean answer.
+REGION_BBOX = {
+    "West":  {"lon": (-125.0, -115.0), "lat": (32.0, 49.5)},
+    "North": {"lon": (-115.0, -87.0),  "lat": (38.5, 49.5)},
+    "South": {"lon": (-107.0, -75.0),  "lat": (24.0, 38.5)},
+    "East":  {"lon": (-80.5, -66.0),   "lat": (38.5, 48.0)},
+}
+
 CHANNELS = ["In-Store", "Curbside", "Phone"]
 MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
                "July", "August", "September", "October", "November", "December"]
@@ -732,6 +755,149 @@ def write_quarterly_pdf(rows, path):
 
 
 # --------------------------------------------------------------------------- #
+# Spatial
+# --------------------------------------------------------------------------- #
+
+def _ccw_ring(lon_range, lat_range):
+    """
+    Counter-clockwise exterior ring for a bounding box.
+
+    Orientation is not cosmetic. SQL Server's `geography` type uses the
+    left-hand rule, so a clockwise ring describes everything on the *outside* -
+    you get a polygon covering nearly the whole planet instead of one US region.
+    GeoJSON (RFC 7946) wants counter-clockwise exteriors too, so one order serves
+    both.
+    """
+    lon0, lon1 = lon_range
+    lat0, lat1 = lat_range
+    return [[lon0, lat0], [lon1, lat0], [lon1, lat1], [lon0, lat1], [lon0, lat0]]
+
+
+def write_store_locations_csv(path):
+    """Lat/long plus WKT - the simplest possible map-visual source."""
+    region_of = {r["RegionID"]: r["RegionName"] for r in REGIONS}
+    cols = ["StoreID", "StoreName", "City", "State", "RegionID", "RegionName",
+            "Latitude", "Longitude", "WKT"]
+    with path.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(cols)
+        for s in STORES:
+            lat, lon = STORE_COORDS[s[0]]
+            w.writerow([s[0], s[1], s[2], s[3], s[4], region_of[s[4]],
+                        f"{lat:.4f}", f"{lon:.4f}", f"POINT ({lon:.4f} {lat:.4f})"])
+
+
+def write_store_locations_geojson(path):
+    region_of = {r["RegionID"]: r["RegionName"] for r in REGIONS}
+    features = []
+    for s in STORES:
+        lat, lon = STORE_COORDS[s[0]]
+        features.append({
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [lon, lat]},
+            "properties": {
+                "StoreID": s[0], "StoreName": s[1], "City": s[2], "State": s[3],
+                "RegionID": s[4], "RegionName": region_of[s[4]], "SquareFeet": s[6],
+            },
+        })
+    payload = {"type": "FeatureCollection",
+               "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+               "features": features}
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+
+def write_regions_geojson(path):
+    features = []
+    for reg in REGIONS:
+        box = REGION_BBOX[reg["RegionName"]]
+        features.append({
+            "type": "Feature",
+            "geometry": {"type": "Polygon", "coordinates": [_ccw_ring(box["lon"], box["lat"])]},
+            "properties": {
+                "RegionID": reg["RegionID"], "RegionName": reg["RegionName"],
+                "Manager": reg["Manager"], "TargetRevenue": reg["TargetRevenue"],
+            },
+        })
+    with path.open("w", encoding="utf-8") as f:
+        json.dump({"type": "FeatureCollection", "features": features}, f, indent=2)
+
+
+def write_regions_topojson(path):
+    """
+    Minimal TopoJSON for Power BI's Shape Map visual.
+
+    No `transform` member, which means arc positions are absolute rather than
+    delta-encoded - the spec only delta-encodes quantized topologies, and skipping
+    quantization keeps this readable and hand-verifiable.
+    """
+    arcs = []
+    geometries = []
+    for i, reg in enumerate(REGIONS):
+        box = REGION_BBOX[reg["RegionName"]]
+        arcs.append(_ccw_ring(box["lon"], box["lat"]))
+        geometries.append({
+            "type": "Polygon",
+            "arcs": [[i]],
+            "properties": {"RegionName": reg["RegionName"], "RegionID": reg["RegionID"]},
+        })
+    payload = {
+        "type": "Topology",
+        "objects": {"regions": {"type": "GeometryCollection", "geometries": geometries}},
+        "arcs": arcs,
+    }
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+
+def write_customer_locations_csv(path, rng, per_store=60):
+    """
+    Customers scattered around each store, for distance and catchment demos.
+    Offsets are small enough that every customer stays inside its store's region
+    polygon, which keeps the point-in-polygon results tidy.
+    """
+    region_of = {r["RegionID"]: r["RegionName"] for r in REGIONS}
+    cols = ["CustomerID", "CustomerName", "HomeStoreID", "RegionName",
+            "Latitude", "Longitude", "LoyaltyTier"]
+    with path.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(cols)
+        cid = 1000
+        for s in STORES:
+            base_lat, base_lon = STORE_COORDS[s[0]]
+            for _ in range(per_store):
+                cid += 1
+                lat = base_lat + rng.uniform(-0.45, 0.45)
+                lon = base_lon + rng.uniform(-0.55, 0.55)
+                w.writerow([f"C{cid}",
+                            f"{rng.choice(CUSTOMER_FIRST)} {rng.choice(CUSTOMER_LAST)}",
+                            s[0], region_of[s[4]],
+                            f"{lat:.5f}", f"{lon:.5f}",
+                            rng.choices(["None", "Silver", "Gold", "Platinum"],
+                                        weights=[46, 30, 18, 6])[0]])
+
+
+def verify_spatial_consistency():
+    """
+    Assert each store falls inside exactly one region polygon, and that the
+    polygon matches the store's assigned region. A silent mismatch here would
+    make the SQL point-in-polygon demo contradict the dimension tables.
+    """
+    region_of = {r["RegionID"]: r["RegionName"] for r in REGIONS}
+    problems = []
+    for s in STORES:
+        lat, lon = STORE_COORDS[s[0]]
+        hits = [name for name, box in REGION_BBOX.items()
+                if box["lon"][0] <= lon <= box["lon"][1] and box["lat"][0] <= lat <= box["lat"][1]]
+        expected = region_of[s[4]]
+        if hits != [expected]:
+            problems.append(f"{s[1]} ({lat},{lon}) -> {hits}, expected exactly ['{expected}']")
+    if problems:
+        raise SystemExit("Spatial consistency check failed:\n  " + "\n  ".join(problems))
+    return len(STORES)
+
+
+# --------------------------------------------------------------------------- #
 # Driver
 # --------------------------------------------------------------------------- #
 
@@ -743,7 +909,7 @@ def main():
     out = Path(args.out).resolve()
     if out.exists():
         shutil.rmtree(out)
-    for sub in ("CSV/MonthlySales", "Excel", "JSON", "XML", "PDF"):
+    for sub in ("CSV/MonthlySales", "Excel", "JSON", "XML", "PDF", "Spatial"):
         (out / sub).mkdir(parents=True, exist_ok=True)
 
     rng = random.Random(SEED)
@@ -773,6 +939,16 @@ def main():
     write_product_catalog_xml(out / "XML" / "Product_Catalog.xml")
     write_employees_xml(out / "XML" / "Employees.xml", random.Random(SEED + 2))
     print("  Product_Catalog.xml, Employees.xml")
+
+    print("Writing spatial ...")
+    n = verify_spatial_consistency()
+    print(f"  {n}/{len(STORES)} stores verified inside exactly one region polygon")
+    write_store_locations_csv(out / "Spatial" / "Store_Locations.csv")
+    write_store_locations_geojson(out / "Spatial" / "Store_Locations.geojson")
+    write_regions_geojson(out / "Spatial" / "Contoso_Regions.geojson")
+    write_regions_topojson(out / "Spatial" / "Contoso_Regions.topojson")
+    write_customer_locations_csv(out / "Spatial" / "Customer_Locations.csv", random.Random(SEED + 3))
+    print("  Store_Locations.csv/.geojson, Contoso_Regions.geojson/.topojson, Customer_Locations.csv")
 
     print("Writing PDF ...")
     write_regional_pdf(rows, orders, out / "PDF" / "Regional_Sales_Report.pdf")

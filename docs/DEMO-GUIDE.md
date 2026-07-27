@@ -14,7 +14,7 @@ Two independent data sets are available, and they are useful for different thing
 
 ## Part 1 — The Contoso Outdoor Co file set
 
-All 22 files describe **one fictional business in FY2024**, and they share keys
+All 27 files describe **one fictional business in FY2024**, and they share keys
 (`ProductID`, `StoreID`, `RegionID`, dates in 2024). That is deliberate: the
 class can build a single model whose dimensions come from XML and Excel while its
 facts come from CSV and JSON, which is a far more honest picture of real BI work
@@ -35,9 +35,15 @@ C:\PL300\Data\
 ├── XML\
 │   ├── Product_Catalog.xml             hierarchical, attributes + elements
 │   └── Employees.xml                   flat repeating elements
-└── PDF\
-    ├── Regional_Sales_Report.pdf       4 tables over 2 pages
-    └── Quarterly_Summary.pdf           1 simple table
+├── PDF\
+│   ├── Regional_Sales_Report.pdf       4 tables over 2 pages
+│   └── Quarterly_Summary.pdf           1 simple table
+└── Spatial\
+    ├── Store_Locations.csv             lat/long + WKT for map visuals
+    ├── Store_Locations.geojson         point features
+    ├── Customer_Locations.csv          480 customers with coordinates
+    ├── Contoso_Regions.geojson         4 region polygons
+    └── Contoso_Regions.topojson        for the Shape Map visual
 ```
 
 ### The star schema hiding in the files
@@ -432,7 +438,159 @@ VS Code is installed with the Python, Jupyter, SQL Server and Power Query (M)
 extensions, which makes it a better place to draft M and Python before pasting
 into Power BI than the Advanced Editor.
 
-### Demo 17 — Optimization
+### Demo 17 — Spatial data and map visuals
+**Modules: Get data / Design a semantic model / Create reports**
+
+Two sources are available, and the contrast between them *is* the lesson.
+
+#### Files — `C:\PL300\Data\Spatial`
+
+| File | Use |
+|---|---|
+| `Store_Locations.csv` | 8 stores with `Latitude`, `Longitude`, `WKT`, `CityState` |
+| `Customer_Locations.csv` | 480 customers with coordinates |
+| `Store_Locations.geojson` | Point features — Azure Maps, or Power Query JSON parsing |
+| `Contoso_Regions.geojson` | 4 region polygons |
+| `Contoso_Regions.topojson` | Same polygons for the **Shape Map** visual |
+
+Start with the CSV and the built-in **Map** visual. Two ways to feed it, worth
+doing both:
+
+1. **Latitude / Longitude fields** — exact, no ambiguity, no internet geocoding.
+2. **`CityState` in the Location bucket** — Power BI geocodes the text via Bing.
+   Then set **Column tools → Data category** to `City`/`State or Province` and
+   show how it changes the result. This is where you explain why "Springfield"
+   plots in the wrong state and why data categories matter.
+
+Then **Filled Map** using `State`, and **Shape Map** with
+`Contoso_Regions.topojson` (**Format → Shape → Add map**).
+
+> Shape Map is still a preview feature. If you don't see it, enable it under
+> **File → Options → Preview features → Shape map visual** and restart. Check
+> this before class — a missing visual is an awkward thing to discover live.
+
+#### SQL Server — the `PL300Demo` database
+
+This is where the actual `geography` **data type** lives. Connect to `localhost`,
+database `PL300Demo`.
+
+| Object | Demonstrates |
+|---|---|
+| `dbo.StoreLocation` | `geography` points, built with `geography::Point()` |
+| `dbo.RegionBoundary` | `geography` polygons from WKT |
+| `dbo.CustomerLocation` | 480 points + a **spatial index** |
+| `dbo.vw_StoreLocations` | `.Lat` / `.Long` / `.STAsText()` projected for Power BI |
+| `dbo.vw_CustomerNearestStore` | `STDistance` + `CROSS APPLY` nearest-neighbour |
+| `dbo.vw_StoreRegionCheck` | `STIntersects` point-in-polygon |
+| `dbo.vw_StoreCatchment` | customers within 25 / 50 / 100 km |
+| `dbo.vw_AdventureWorksAddresses` | the real `Person.Address.SpatialLocation` column |
+
+**The key teaching point:** Power BI's SQL Server connector **cannot consume a
+`geography` column**. Prove it — import `dbo.StoreLocation` directly and watch
+`GeoPoint` arrive as an unusable binary value. Then import `dbo.vw_StoreLocations`
+instead, which projects `.Lat` and `.Long`, and the map works. That is why every
+spatial source you'll ever meet needs a projection step.
+
+Queries worth running in SSMS first:
+
+```sql
+USE PL300Demo;
+
+-- Argument order is (latitude, longitude) - the opposite of WKT, and the single
+-- most common spatial mistake.
+SELECT StoreName, GeoPoint.Lat, GeoPoint.Long, GeoPoint.STAsText()
+FROM dbo.StoreLocation;
+
+-- Distance in metres between two stores
+SELECT ROUND(a.GeoPoint.STDistance(b.GeoPoint) / 1000, 1) AS Km
+FROM dbo.StoreLocation a, dbo.StoreLocation b
+WHERE a.City = 'Denver' AND b.City = 'Boston';
+
+-- Point in polygon
+SELECT * FROM dbo.vw_StoreRegionCheck;
+
+-- Everything within 300 km of Denver, using a real buffer
+DECLARE @denver geography = (SELECT GeoPoint FROM dbo.StoreLocation WHERE City = 'Denver');
+SELECT CustomerID, ROUND(GeoPoint.STDistance(@denver) / 1000, 1) AS Km
+FROM dbo.CustomerLocation
+WHERE GeoPoint.STWithin(@denver.STBuffer(300000)) = 1
+ORDER BY Km;
+```
+
+Verified results on this instance: 8 stores, 4 regions, 480 customers, and all
+8 stores resolve to exactly their assigned region.
+
+Two gotchas baked into the script as comments, both worth showing:
+
+- **Ring orientation.** `geography` uses the left-hand rule, so a clockwise
+  polygon ring describes the entire planet *minus* your region. Queries still
+  return rows — just nonsense ones. The script checks `STArea()` and reorients
+  anything larger than 1e14 m².
+- **`geometry` and `geography` are not interchangeable.** `STCentroid()` exists
+  only on `geometry`; on `geography` you need `EnvelopeCenter()`.
+
+### Demo 18 — R in Power BI
+**Modules: Perform analytics / Enhance report designs**
+
+R is installed with `ggplot2`, `dplyr`, `scales` and `forecast`, into the R
+installation's own library so every user sees them. Confirm detection under
+**File → Options and settings → Options → R scripting**.
+
+The same three integration points as Python — R script data source, R transform
+step, and R visual — but the R visual is where it earns its keep.
+
+**ggplot2 visual** against the sales data. Drag `Category` and `SalesAmount` in:
+
+```r
+library(ggplot2)
+ggplot(dataset, aes(x = reorder(Category, SalesAmount), y = SalesAmount)) +
+  geom_col(fill = "#1F4E79") +
+  coord_flip() +
+  labs(title = "Revenue by Category", x = NULL, y = "Revenue") +
+  theme_minimal(base_size = 14)
+```
+
+**Forecasting** — the demo that justifies R visuals existing. Power BI's built-in
+analytics forecast is a black box; this is auto-fitted ARIMA with a visible model.
+Drag in a date field and `SalesAmount`:
+
+```r
+library(forecast)
+# dataset arrives with the fields you dragged in, aggregated by Power BI
+ts_data <- ts(dataset$SalesAmount, frequency = 12)
+fit <- auto.arima(ts_data)
+plot(forecast(fit, h = 6),
+     main = paste0("6-month forecast - ARIMA(",
+                   paste(arimaorder(fit), collapse = ","), ")"),
+     xlab = "Period", ylab = "Revenue")
+```
+
+Verified on this VM against the monthly revenue figures from
+`Quarterly_Summary.pdf`: `auto.arima` selects ARIMA(2,0,0) and forecasts
+678,184 / 679,910 / 632,080 for the next three months. Handy to know in advance
+so you can tell whether a live run has gone wrong.
+
+**A transform step** — Transform Data → **Run R script**. The table arrives as
+`dataset`; return a data frame:
+
+```r
+library(dplyr)
+output <- dataset %>%
+  group_by(Category) %>%
+  mutate(CategoryShare = SalesAmount / sum(SalesAmount)) %>%
+  ungroup()
+```
+
+Same honest caveats as Python: R visuals render as static images, do not
+cross-filter, cap at 150,000 rows, and need a gateway once published. Use them for
+statistical output the built-in visuals can't produce — `forecast`, correlation
+matrices, box plots with custom stats — not for bar charts.
+
+Good comparison to draw at the end: Python and R do the *same* job here. Python
+suits teams already using pandas; R suits statisticians and has the stronger
+plotting grammar in `ggplot2`. Power BI genuinely does not care which.
+
+### Demo 19 — Optimization
 **Module: Optimize a model for performance**
 
 - **Performance Analyzer** — record, interact, read DAX query durations
@@ -456,8 +614,9 @@ single worst offender in a real model.
 | 2 | Model design | Demos 12, 8 (reconciliation) |
 | 2 | DAX | Demos 13, 14 |
 | 3 | Visualize and analyze | AdventureWorksDW model built on day 2 |
-| 3 | Analytics extensibility | Demo 16 (Python) — optional, if the class has the appetite |
-| 3 | Manage and secure | Demos 15, 17, Demo 9 (gateway discussion) |
+| 2 | Spatial and maps | Demo 17 — pairs naturally with the Store dimension |
+| 3 | Analytics extensibility | Demos 16 (Python) and 18 (R) — pick one, or contrast both |
+| 3 | Manage and secure | Demos 15, 19, Demo 9 (gateway discussion) |
 
 ## What this environment does *not* provide
 

@@ -2,8 +2,9 @@
 
 Infrastructure-as-code for a self-contained **Microsoft PL-300 (Power BI Data Analyst)**
 teaching environment on Azure: one Windows VM with Power BI Desktop, SQL Server 2022
-with both AdventureWorks sample databases, and a purpose-built set of CSV / Excel /
-JSON / XML / PDF demo files.
+with both AdventureWorks sample databases plus a spatial (`geography`) demo
+database, Python and R for the analytics-extensibility demos, and a purpose-built
+set of CSV / Excel / JSON / XML / PDF / GeoJSON / TopoJSON demo files.
 
 Course reference: [PL-300T00 study guide](https://learn.microsoft.com/en-us/training/courses/PL-300T00)
 
@@ -14,10 +15,11 @@ Course reference: [PL-300T00 study guide](https://learn.microsoft.com/en-us/trai
 | Resource group | `pbi-rg` (eastus2) |
 | VM | `Standard_D4as_v4` — 4 vCPU / 16 GB, Premium SSD 256 GB |
 | Image | `MicrosoftSQLServer:sql2022-ws2022:sqldev-gen2` — Windows Server 2022 + SQL Server 2022 **Developer** |
-| Databases | `AdventureWorksDW2022` (star schema), `AdventureWorks2022` (OLTP) |
-| Tools | Power BI Desktop, SSMS 22, DAX Studio, Tabular Editor 2, VS Code, Python 3.12, Git, 7-Zip, Notepad++ |
+| Databases | `AdventureWorksDW2022` (star schema), `AdventureWorks2022` (OLTP), `PL300Demo` (spatial) |
+| Tools | Power BI Desktop, SSMS 22, DAX Studio, Tabular Editor 2, VS Code, Python 3.12, R 4.6, Git, 7-Zip, Notepad++ |
 | Python | `pandas`, `matplotlib`, `numpy`, `seaborn`, `openpyxl`, `ipykernel` — machine-wide |
-| Demo files | 22 files on the VM at `C:\PL300\Data`, also in blob storage |
+| R | `ggplot2`, `dplyr`, `scales`, `forecast` — in the R install's own library |
+| Demo files | 27 files on the VM at `C:\PL300\Data` (CSV, Excel, JSON, XML, PDF, GeoJSON, TopoJSON), also in blob storage |
 | Access | RDP 3389 and SQL 1433, restricted to **your public IP only** |
 | Cost control | Nightly auto-shutdown, plus start/stop scripts |
 
@@ -68,18 +70,18 @@ which PL-300 module it maps to.
 
 ## Optional extras
 
-Three things are genuinely useful for PL-300 but deliberately off by default.
+Two things are genuinely useful for PL-300 but deliberately off by default.
+(R used to be listed here; it is now installed by default.)
 Enable any of them in `terraform/terraform.tfvars`, then re-run
 `terraform apply` (the bootstrap re-runs and skips everything already installed):
 
 ```hcl
-extra_choco_packages = ["powerbigateway", "r.project", "almtoolkit"]
+extra_choco_packages = ["powerbigateway", "almtoolkit"]
 ```
 
 | Package | Why you might want it | Why it is off |
 |---|---|---|
 | `powerbigateway` | On-premises data gateway — the missing piece when you explain why `C:\PL300\Data` breaks a scheduled refresh in the service | Cannot be *registered* without a Power BI/Fabric account, so it installs a service that just sits there |
-| `r.project` | R runtime, so R visuals work alongside Python | Another ~200 MB and most classes only demo Python |
 | `almtoolkit` | Semantic model diff/deploy demos for the "Manage" objectives | Overlaps Tabular Editor for most teaching purposes |
 
 ## Cost
@@ -112,11 +114,12 @@ scripts/
   update-my-ip.sh        fix NSG after your IP changes
   rerun-bootstrap.sh     idempotent in-place repair
   destroy.sh             tear down
-  generate-demo-data.py  builds the CSV/Excel/JSON/XML/PDF set
+  generate-demo-data.py  builds the CSV/Excel/JSON/XML/PDF/spatial set
   bootstrap.ps1          runs on the VM: tools, SQL config, restores, demo files
   sql/
     configure-sql.sql            login, mixed-mode auth, memory cap
     restore-adventureworks.sql   header-driven restore with MOVE
+    create-spatial-demo.sql      geography points/polygons, spatial index, views
 docs/
   CONNECT.md       how to get in
   DEMO-GUIDE.md    demo file catalogue mapped to PL-300 modules
@@ -242,6 +245,20 @@ anything. Since the VM spends most of its life deallocated to save money, every
 `plan`/`apply`/`destroy` has to start it first. `deploy.sh` and `destroy.sh` do
 that automatically; if you run Terraform by hand, run `./scripts/start-vm.sh`
 first.
+
+**`sqlcmd` needs `-I` for spatial indexes.** `CREATE SPATIAL INDEX` requires
+`QUOTED_IDENTIFIER ON`, and `sqlcmd` — unlike SSMS — defaults it **OFF**, so the
+index creation fails with `Msg 1934 … the following SET options have incorrect
+settings: 'QUOTED_IDENTIFIER'`. Both sqlcmd invocations now pass `-I`, and
+`create-spatial-demo.sql` also sets the full required option set itself so it
+works regardless of how it is run.
+
+**`geometry` and `geography` are not interchangeable.** `STCentroid()` exists only
+on `geometry`; calling it on a `geography` value fails with `Msg 6506 … Could not
+find method 'STCentroid'`. The geography equivalent is `EnvelopeCenter()`. Related
+trap, deliberately left documented in the script: `geography` polygon rings must be
+counter-clockwise, or you describe the whole planet minus your region — the script
+checks `STArea()` and reorients anything over 1e14 m².
 
 **SQL memory is capped at 6 GB.** SQL Server would otherwise take almost all 16 GB
 and make Power BI Desktop feel broken in front of a class.

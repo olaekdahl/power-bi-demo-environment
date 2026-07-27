@@ -122,6 +122,20 @@ variable "python_packages" {
   default     = ["pandas", "matplotlib", "numpy", "seaborn", "openpyxl", "ipykernel"]
 }
 
+variable "r_packages" {
+  description = <<-EOT
+    R packages installed into the R installation's own library, so every user
+    sees them. Power BI's R visuals need the packages loadable by the interpreter
+    it launches; a bare R runtime renders an error instead of a plot.
+
+    forecast is the heaviest of these but earns its place - time-series
+    forecasting is the standard example of an R visual doing something the
+    built-in visuals cannot.
+  EOT
+  type        = list(string)
+  default     = ["ggplot2", "dplyr", "scales", "forecast"]
+}
+
 variable "vscode_extensions" {
   description = "VS Code extensions installed for the RDP user (and baked into the default profile)."
   type        = list(string)
