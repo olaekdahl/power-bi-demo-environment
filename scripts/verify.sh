@@ -90,6 +90,8 @@ printf '  %-24s %s\n' "SQL Server service"  "$(jq -r '.sqlService // "unknown"' 
 printf '  %-24s %s\n' "Listening on 1433"   "$(jq -r '.tcp1433 // false' <<<"$json")"
 printf '  %-24s %s\n' "Power BI Desktop"    "$(jq -r '.verify.PowerBIDesktop // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "SSMS"               "$(jq -r '.verify.SSMS // "unknown"' <<<"$json")"
+alsossms="$(jq -r '.verify.SSMSAlsoPresent // ""' <<<"$json")"
+[[ -n "$alsossms" ]] && printf '  %-24s %s\n' "SSMS (older, also on box)" "$alsossms"
 printf '  %-24s %s\n' "DAX Studio"         "$(jq -r '.verify.DaxStudio // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "Tabular Editor"     "$(jq -r '.verify.TabularEditor // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "VS Code"            "$(jq -r '.verify.VSCode // "unknown"' <<<"$json")"
@@ -101,6 +103,7 @@ printf '  %-24s %s\n' "Databases"          "$(jq -r '.verify.Databases // "unkno
 printf '  %-24s %s\n' "FactInternetSales"  "$(jq -r '.verify.FactInternetSalesRows // "unknown"' <<<"$json") rows"
 printf '  %-24s %s\n' "Demo files"         "$(jq -r '.dataFiles // 0' <<<"$json") files"
 printf '  %-24s %s\n' "Demo formats"       "$(jq -r '.verify.DemoFormats // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "Duplicate shortcuts" "$(jq -r '.verify.DesktopDuplicates // "unknown"' <<<"$json")"
 
 problems=0
 [[ "$(jq -r '.sqlService // ""' <<<"$json")" == "Running" ]] || { warn "SQL Server is not running."; problems=1; }
@@ -111,6 +114,8 @@ esac
 jq -e '.verify.Databases | test("AdventureWorksDW2022")' <<<"$json" >/dev/null 2>&1 || { warn "AdventureWorksDW2022 is missing."; problems=1; }
 jq -e '.verify.Databases | test("AdventureWorks2022")'   <<<"$json" >/dev/null 2>&1 || { warn "AdventureWorks2022 is missing."; problems=1; }
 (( $(jq -r '.dataFiles // 0' <<<"$json") >= 20 )) || { warn "Expected 20+ demo files."; problems=1; }
+dupes="$(jq -r '.verify.DesktopDuplicates // "none"' <<<"$json")"
+[[ "$dupes" != "none" && "$dupes" != "unknown" ]] && warn "Duplicate desktop shortcuts present: $dupes"
 
 if (( problems == 0 && failc == 0 )); then
   head1 "${c_green}Environment is ready.${c_reset}"

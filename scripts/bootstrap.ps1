@@ -480,6 +480,60 @@ Invoke-Step 'Install Tabular Editor (portable)' {
 # 3. SQL Server
 # --------------------------------------------------------------------------- #
 
+# Shortcuts this script owns on the Public Desktop. Only these exact names are
+# ever removed from a per-user desktop, so anything the instructor puts there by
+# hand is left strictly alone.
+$ManagedShortcutNames = @(
+    'PL-300 Demo Data.lnk',
+    'PL-300 Demo Guide.lnk',
+    'SQL Server Management Studio.lnk',
+    'Tabular Editor.lnk'
+)
+
+function Remove-ManagedShortcutDuplicates {
+    <#
+        Deletes this script's own shortcuts from individual user desktops.
+
+        Everything belongs on the Public Desktop, which Explorer merges into each
+        user's view. A copy in both places shows up twice. This makes the fix
+        self-healing: re-running the bootstrap clears duplicates left behind by
+        the earlier version that wrote to both locations.
+    #>
+    $profiles = Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -notin @('Default', 'Default User', 'Public', 'All Users') }
+
+    foreach ($profileDir in $profiles) {
+        $userDesktop = Join-Path $profileDir.FullName 'Desktop'
+        if (-not (Test-Path $userDesktop)) { continue }
+        foreach ($name in $ManagedShortcutNames) {
+            $candidate = Join-Path $userDesktop $name
+            if (Test-Path $candidate) {
+                Remove-Item $candidate -Force -ErrorAction SilentlyContinue
+                Write-Log "    removed duplicate from $($profileDir.Name)'s desktop: $name"
+            }
+        }
+    }
+}
+
+function Get-SsmsExecutables {
+    <#
+        Returns every Ssms.exe on the box, newest major version first.
+
+        There is normally more than one: the Azure SQL Server marketplace image
+        ships with SSMS 20 pre-installed under Program Files (x86), and the
+        Chocolatey package adds a current release (22.x) under Program Files.
+        Both get Start-menu entries, so the desktop shortcut has to point
+        deliberately at the newest one or the class ends up in the old shell.
+    #>
+    Get-ChildItem -Path 'C:\Program Files\Microsoft SQL Server Management Studio*',
+                        'C:\Program Files (x86)\Microsoft SQL Server Management Studio*' `
+                  -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            Get-ChildItem -Path $_.FullName -Filter 'Ssms.exe' -Recurse -ErrorAction SilentlyContinue
+        } |
+        Sort-Object -Property { $_.VersionInfo.FileMajorPart } -Descending
+}
+
 function Get-SqlCmdPath {
     $cmd = Get-Command sqlcmd.exe -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd.Source }
@@ -777,28 +831,42 @@ Bootstrap log: C:\PL300\Logs\bootstrap.log
 Step results : C:\PL300\Logs\status.json
 "@ | Set-Content -Path $guide -Encoding utf8
 
-    $desktops = @("C:\Users\Public\Desktop")
-    if ($WindowsAdminUser) {
-        $userDesktop = "C:\Users\$WindowsAdminUser\Desktop"
-        if (Test-Path $userDesktop) { $desktops += $userDesktop }
-    }
+    # Public Desktop ONLY. Explorer composites C:\Users\Public\Desktop with the
+    # signed-in user's own Desktop into a single view, so writing a shortcut to
+    # both places makes it appear twice. An earlier version of this step wrote to
+    # both: harmless on the first run because the admin profile did not exist
+    # yet, but it produced visible duplicates as soon as anyone logged in and
+    # the bootstrap re-ran.
+    $desktop = 'C:\Users\Public\Desktop'
+    New-Item -ItemType Directory -Path $desktop -Force | Out-Null
 
     $shell = New-Object -ComObject WScript.Shell
-    foreach ($desktop in $desktops) {
-        if (-not (Test-Path $desktop)) { continue }
 
-        $lnk = $shell.CreateShortcut((Join-Path $desktop 'PL-300 Demo Data.lnk'))
-        $lnk.TargetPath = $Paths.Data
-        $lnk.Description = 'CSV, Excel, JSON, XML and PDF demo files'
-        $lnk.Save()
+    $lnk = $shell.CreateShortcut((Join-Path $desktop 'PL-300 Demo Data.lnk'))
+    $lnk.TargetPath = $Paths.Data
+    $lnk.Description = 'CSV, Excel, JSON, XML and PDF demo files'
+    $lnk.Save()
 
-        $lnk2 = $shell.CreateShortcut((Join-Path $desktop 'PL-300 Demo Guide.lnk'))
-        $lnk2.TargetPath = 'notepad.exe'
-        $lnk2.Arguments = "`"$guide`""
-        $lnk2.Description = 'What is installed and what each demo file teaches'
-        $lnk2.Save()
+    $lnk2 = $shell.CreateShortcut((Join-Path $desktop 'PL-300 Demo Guide.lnk'))
+    $lnk2.TargetPath = 'notepad.exe'
+    $lnk2.Arguments = "`"$guide`""
+    $lnk2.Description = 'What is installed and what each demo file teaches'
+    $lnk2.Save()
+
+    # Point explicitly at the newest SSMS. Chocolatey does not create a desktop
+    # shortcut, and the image's older SSMS 20 also sits in the Start menu, so
+    # without this the class has two entries and no clear default.
+    $ssms = Get-SsmsExecutables | Select-Object -First 1
+    if ($ssms) {
+        $lnk3 = $shell.CreateShortcut((Join-Path $desktop 'SQL Server Management Studio.lnk'))
+        $lnk3.TargetPath = $ssms.FullName
+        $lnk3.Description = "SSMS $($ssms.VersionInfo.FileMajorPart) - connect to localhost with Windows auth"
+        $lnk3.Save()
     }
-    Copy-Item $guide -Destination 'C:\Users\Public\Desktop\DEMO-GUIDE.md' -Force -ErrorAction SilentlyContinue
+
+    Copy-Item $guide -Destination (Join-Path $desktop 'DEMO-GUIDE.md') -Force -ErrorAction SilentlyContinue
+
+    Remove-ManagedShortcutDuplicates
 }
 
 # --------------------------------------------------------------------------- #
@@ -814,10 +882,20 @@ Invoke-Step 'Verify installation' {
     ) | Where-Object { Test-Path $_ } | Select-Object -First 1
     $checks['PowerBIDesktop'] = if ($pbi) { $pbi } else { 'NOT FOUND' }
 
-    $ssms = Get-ChildItem 'C:\Program Files (x86)\Microsoft SQL Server Management Studio*', `
-                          'C:\Program Files\Microsoft SQL Server Management Studio*' `
-                          -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
-    $checks['SSMS'] = if ($ssms) { $ssms.FullName } else { 'NOT FOUND' }
+    # Report the newest, and disclose the others: the previous version of this
+    # check took whichever directory globbed first and so reported the image's
+    # old SSMS 20 rather than the current release Chocolatey had installed.
+    $ssmsAll = @(Get-SsmsExecutables)
+    if ($ssmsAll.Count) {
+        $checks['SSMS'] = '{0} (v{1})' -f $ssmsAll[0].FullName, $ssmsAll[0].VersionInfo.FileVersion
+        if ($ssmsAll.Count -gt 1) {
+            $checks['SSMSAlsoPresent'] = ($ssmsAll[1..($ssmsAll.Count - 1)] |
+                ForEach-Object { 'v' + $_.VersionInfo.FileVersion }) -join ', '
+        }
+    }
+    else {
+        $checks['SSMS'] = 'NOT FOUND'
+    }
 
     $checks['SqlService'] = (Get-Service MSSQLSERVER -ErrorAction SilentlyContinue).Status.ToString()
 
@@ -886,6 +964,20 @@ Invoke-Step 'Verify installation' {
     catch {
         $checks['Databases'] = "query failed: $($_.Exception.Message)"
     }
+
+    # Shortcuts live on the Public Desktop only; a copy in a per-user desktop
+    # renders as a duplicate icon, so surface it rather than let it look tidy.
+    $dupes = @()
+    foreach ($profileDir in Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue |
+             Where-Object { $_.Name -notin @('Default', 'Default User', 'Public', 'All Users') }) {
+        $userDesktop = Join-Path $profileDir.FullName 'Desktop'
+        foreach ($name in $ManagedShortcutNames) {
+            if (Test-Path (Join-Path $userDesktop $name)) { $dupes += "$($profileDir.Name)\$name" }
+        }
+    }
+    $checks['DesktopDuplicates'] = if ($dupes.Count) { $dupes -join ', ' } else { 'none' }
+    $checks['PublicDesktopItems'] = ((Get-ChildItem 'C:\Users\Public\Desktop' -ErrorAction SilentlyContinue).Name |
+                                     Sort-Object) -join ', '
 
     $checks['DemoFileCount'] = (Get-ChildItem $Paths.Data -Recurse -File -ErrorAction SilentlyContinue).Count
     $checks['DemoFormats']   = ((Get-ChildItem $Paths.Data -Recurse -File -ErrorAction SilentlyContinue |

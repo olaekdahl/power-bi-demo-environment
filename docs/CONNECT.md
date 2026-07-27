@@ -65,12 +65,18 @@ xfreerdp /v:"$FQDN" /u:pl300admin /p:"$PASS" /size:1920x1080 /smart-sizing /clip
 
 ### From inside the VM
 
-Open SSMS and connect to:
+Use the **SQL Server Management Studio** shortcut on the desktop and connect to:
 
 | | |
 |---|---|
 | Server name | `localhost` |
 | Authentication | Windows Authentication |
+
+> Two SSMS versions are on the box: **22.x** (installed by the bootstrap, under
+> `C:\Program Files\...Management Studio 22`) and **20.2** which ships
+> pre-installed on the Azure SQL marketplace image. Both appear in the Start
+> menu. The desktop shortcut points at 22 — use that one for consistency,
+> especially if you are screen-sharing.
 
 Windows auth works for the RDP account, which the Azure image makes a sysadmin.
 In Power BI Desktop, **Get Data → SQL Server**, server `localhost`, database

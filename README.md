@@ -15,7 +15,7 @@ Course reference: [PL-300T00 study guide](https://learn.microsoft.com/en-us/trai
 | VM | `Standard_D4as_v4` — 4 vCPU / 16 GB, Premium SSD 256 GB |
 | Image | `MicrosoftSQLServer:sql2022-ws2022:sqldev-gen2` — Windows Server 2022 + SQL Server 2022 **Developer** |
 | Databases | `AdventureWorksDW2022` (star schema), `AdventureWorks2022` (OLTP) |
-| Tools | Power BI Desktop, SSMS, DAX Studio, Tabular Editor 2, VS Code, Python 3.12, Git, 7-Zip, Notepad++ |
+| Tools | Power BI Desktop, SSMS 22, DAX Studio, Tabular Editor 2, VS Code, Python 3.12, Git, 7-Zip, Notepad++ |
 | Python | `pandas`, `matplotlib`, `numpy`, `seaborn`, `openpyxl`, `ipykernel` — machine-wide |
 | Demo files | 22 files on the VM at `C:\PL300\Data`, also in blob storage |
 | Access | RDP 3389 and SQL 1433, restricted to **your public IP only** |
@@ -210,6 +210,24 @@ prebuilt wheel availability for pandas/numpy/matplotlib.
 that RDPs in. They are installed with an explicit `--extensions-dir` for every
 real profile plus `C:\Users\Default`, so a profile created later inherits them.
 Same class of bug as the file-extension registry setting below.
+
+**Desktop shortcuts go on the Public Desktop only.** Explorer merges
+`C:\Users\Public\Desktop` into each signed-in user's own Desktop view, so a
+shortcut written to both places renders twice. An earlier version of the bootstrap
+looped over both — invisible on the first run because the admin profile did not
+exist yet, then visibly duplicated once someone logged in and the bootstrap
+re-ran. Cleanup is self-healing: the bootstrap deletes its own shortcut names from
+per-user desktops, and verification reports any that reappear. Only the exact
+names the script owns are ever removed, so anything you put on the desktop by hand
+is left alone.
+
+**Two SSMS versions coexist, deliberately.** The Azure SQL marketplace image
+ships SSMS 20.2 pre-installed under `Program Files (x86)`; Chocolatey adds the
+current 22.x under `Program Files`. Both land in the Start menu. Uninstalling the
+image's copy is more risk than value, so instead the bootstrap creates a single
+desktop shortcut pointing at the newest one. Verification reports the newest and
+discloses the rest — an earlier version of that check took whichever directory
+globbed first and so reported the *older* SSMS as the installed one.
 
 **Tabular Editor comes from its GitHub release, not Chocolatey.** There is no
 `tabulareditor` Chocolatey package — `choco install tabulareditor` fails with
