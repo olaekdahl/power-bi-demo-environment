@@ -1,0 +1,18 @@
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform/terraform.tfvars
+
+# Generated demo data + packaging artifacts
+demo-data/
+*.zip
+
+# Local python venv used by the data generator
+.venv/
+venv/
+
+# Secrets / connection notes emitted by scripts
+CONNECTION-INFO.md
