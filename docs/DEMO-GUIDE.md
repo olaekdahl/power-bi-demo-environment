@@ -376,7 +376,63 @@ Explain that `USERPRINCIPALNAME()` returns your desktop identity locally but the
 signed-in user's UPN in the service — and that RLS is bypassed for workspace
 Admin/Member/Contributor roles, which surprises people in production.
 
-### Demo 16 — Optimization
+### Demo 16 — Python in Power BI
+**Modules: Get data / Clean, transform and load / Perform analytics**
+
+Python 3.12 is installed machine-wide with `pandas`, `matplotlib`, `numpy`,
+`seaborn`, `openpyxl` and `ipykernel`. Power BI needs pandas and matplotlib
+present or these features error instead of rendering, which is worth stating
+plainly — it is the most common reason "Python doesn't work in Power BI".
+
+First: **File → Options and settings → Options → Python scripting** and confirm
+the detected home directory. Then the three integration points:
+
+**1. As a data source** — Get Data → Other → **Python script**:
+
+```python
+import pandas as pd
+df = pd.read_csv(r"C:\PL300\Data\CSV\Sales_Transactions.csv")
+summary = df.groupby("ProductID", as_index=False)["SalesAmount"].sum()
+```
+
+Every DataFrame in scope shows up in the Navigator as a table. Useful for showing
+that "Get Data" is extensible, and for pulling in a source Power Query has no
+connector for.
+
+**2. As a transformation step** — Transform Data → Transform → **Run Python
+script**. The current table arrives as `dataset`; return a DataFrame:
+
+```python
+# dataset holds the current query result
+dataset["Margin"] = dataset["SalesAmount"] - dataset["TotalCost"]
+dataset["MarginPct"] = dataset["Margin"] / dataset["SalesAmount"]
+```
+
+Good moment to note this **breaks query folding** and requires a personal gateway
+after publishing — it ties straight back to Demo 11.
+
+**3. As a visual** — the Python visual on the canvas. Drag fields in, and they
+arrive as `dataset`. Must end with `plt.show()`:
+
+```python
+import matplotlib.pyplot as plt
+agg = dataset.groupby("Category")["SalesAmount"].sum().sort_values()
+agg.plot(kind="barh", color="#1F4E79")
+plt.xlabel("Sales Amount")
+plt.tight_layout()
+plt.show()
+```
+
+Worth being honest with the class about the trade-offs: Python visuals are static
+images, do not cross-filter other visuals, cap at 150,000 rows, and need a gateway
+in the service. They earn their place for statistical plots the built-in visuals
+cannot do — not for bar charts.
+
+VS Code is installed with the Python, Jupyter, SQL Server and Power Query (M)
+extensions, which makes it a better place to draft M and Python before pasting
+into Power BI than the Advanced Editor.
+
+### Demo 17 — Optimization
 **Module: Optimize a model for performance**
 
 - **Performance Analyzer** — record, interact, read DAX query durations
@@ -400,7 +456,8 @@ single worst offender in a real model.
 | 2 | Model design | Demos 12, 8 (reconciliation) |
 | 2 | DAX | Demos 13, 14 |
 | 3 | Visualize and analyze | AdventureWorksDW model built on day 2 |
-| 3 | Manage and secure | Demos 15, 16, Demo 9 (gateway discussion) |
+| 3 | Analytics extensibility | Demo 16 (Python) — optional, if the class has the appetite |
+| 3 | Manage and secure | Demos 15, 17, Demo 9 (gateway discussion) |
 
 ## What this environment does *not* provide
 

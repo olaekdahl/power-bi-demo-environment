@@ -92,6 +92,11 @@ printf '  %-24s %s\n' "Power BI Desktop"    "$(jq -r '.verify.PowerBIDesktop // 
 printf '  %-24s %s\n' "SSMS"               "$(jq -r '.verify.SSMS // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "DAX Studio"         "$(jq -r '.verify.DaxStudio // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "Tabular Editor"     "$(jq -r '.verify.TabularEditor // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "VS Code"            "$(jq -r '.verify.VSCode // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "VS Code extensions" "$(jq -r '.verify.VSCodeExtensions // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "Git"                "$(jq -r '.verify.Git // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "Python"             "$(jq -r '.verify.Python // "unknown"' <<<"$json")"
+printf '  %-24s %s\n' "Python data libs"   "$(jq -r '.verify.PythonDataLibs // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "Databases"          "$(jq -r '.verify.Databases // "unknown"' <<<"$json")"
 printf '  %-24s %s\n' "FactInternetSales"  "$(jq -r '.verify.FactInternetSalesRows // "unknown"' <<<"$json") rows"
 printf '  %-24s %s\n' "Demo files"         "$(jq -r '.dataFiles // 0' <<<"$json") files"
@@ -100,6 +105,9 @@ printf '  %-24s %s\n' "Demo formats"       "$(jq -r '.verify.DemoFormats // "unk
 problems=0
 [[ "$(jq -r '.sqlService // ""' <<<"$json")" == "Running" ]] || { warn "SQL Server is not running."; problems=1; }
 [[ "$(jq -r '.verify.PowerBIDesktop // ""' <<<"$json")" == "NOT FOUND" ]] && { warn "Power BI Desktop is missing."; problems=1; }
+case "$(jq -r '.verify.PythonDataLibs // ""' <<<"$json")" in
+  "IMPORT FAILED"*) warn "Python is present but pandas/matplotlib are not importable - Power BI's Python visuals will fail."; problems=1 ;;
+esac
 jq -e '.verify.Databases | test("AdventureWorksDW2022")' <<<"$json" >/dev/null 2>&1 || { warn "AdventureWorksDW2022 is missing."; problems=1; }
 jq -e '.verify.Databases | test("AdventureWorks2022")'   <<<"$json" >/dev/null 2>&1 || { warn "AdventureWorks2022 is missing."; problems=1; }
 (( $(jq -r '.dataFiles // 0' <<<"$json") >= 20 )) || { warn "Expected 20+ demo files."; problems=1; }

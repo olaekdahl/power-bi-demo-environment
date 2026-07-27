@@ -15,7 +15,8 @@ Course reference: [PL-300T00 study guide](https://learn.microsoft.com/en-us/trai
 | VM | `Standard_D4as_v4` — 4 vCPU / 16 GB, Premium SSD 256 GB |
 | Image | `MicrosoftSQLServer:sql2022-ws2022:sqldev-gen2` — Windows Server 2022 + SQL Server 2022 **Developer** |
 | Databases | `AdventureWorksDW2022` (star schema), `AdventureWorks2022` (OLTP) |
-| Tools | Power BI Desktop, SSMS, DAX Studio, Tabular Editor 2, 7-Zip, Notepad++ |
+| Tools | Power BI Desktop, SSMS, DAX Studio, Tabular Editor 2, VS Code, Python 3.12, Git, 7-Zip, Notepad++ |
+| Python | `pandas`, `matplotlib`, `numpy`, `seaborn`, `openpyxl`, `ipykernel` — machine-wide |
 | Demo files | 22 files on the VM at `C:\PL300\Data`, also in blob storage |
 | Access | RDP 3389 and SQL 1433, restricted to **your public IP only** |
 | Cost control | Nightly auto-shutdown, plus start/stop scripts |
@@ -64,6 +65,22 @@ which PL-300 module it maps to.
 ./scripts/rerun-bootstrap.sh   # repair a partial software install in place
 ./scripts/destroy.sh           # delete pbi-rg and everything in it
 ```
+
+## Optional extras
+
+Three things are genuinely useful for PL-300 but deliberately off by default.
+Enable any of them in `terraform/terraform.tfvars`, then re-run
+`terraform apply` (the bootstrap re-runs and skips everything already installed):
+
+```hcl
+extra_choco_packages = ["powerbigateway", "r.project", "almtoolkit"]
+```
+
+| Package | Why you might want it | Why it is off |
+|---|---|---|
+| `powerbigateway` | On-premises data gateway — the missing piece when you explain why `C:\PL300\Data` breaks a scheduled refresh in the service | Cannot be *registered* without a Power BI/Fabric account, so it installs a service that just sits there |
+| `r.project` | R runtime, so R visuals work alongside Python | Another ~200 MB and most classes only demo Python |
+| `almtoolkit` | Semantic model diff/deploy demos for the "Manage" objectives | Overlaps Tabular Editor for most teaching purposes |
 
 ## Cost
 
@@ -161,6 +178,38 @@ containing a colon: `-v BakFile=C:\PL300\Backups\x.bak` is truncated at the driv
 letter and the remainder is read as a stray argument. `Invoke-SqlFile` instead
 generates a small wrapper script that declares the values with `:setvar` (quoted)
 and then `:r`'s the real file.
+
+**All native commands go through `Invoke-Native`.** In Windows PowerShell 5.1 —
+which is what `powershell.exe` under the Custom Script Extension gives you —
+merging a native command's stderr with `2>&1` produces `ErrorRecord` objects, and
+`$ErrorActionPreference = 'Stop'` escalates those to a *terminating* error. Plenty
+of well-behaved tools write harmless notes to stderr:
+
+| Tool | Harmless stderr output | Effect before the fix |
+|---|---|---|
+| `pip` | `WARNING: The scripts pip.exe … is not on PATH` | Python step aborted before installing pandas |
+| `code` | `(node:…) [DEP0169] DeprecationWarning: url.parse()…` | VS Code extension step reported failure |
+
+Exit code is the only trustworthy signal, so `Invoke-Native` relaxes the
+preference around the call, logs the merged output, and judges success by exit
+code (with `SuccessExitCodes` for cases like Chocolatey's `3010` = "installed,
+reboot required"). Worth knowing: this does **not** reproduce under PowerShell 7,
+which yields plain strings from a merged native stream — so testing with `pwsh`
+will not surface it.
+
+**Python is pinned to 3.12, and pandas/matplotlib are not optional.** Power BI
+Desktop shells out to `python.exe` and hands it a DataFrame, so its Python visuals
+and "Run Python script" step fail with an error rather than degrading gracefully
+if those libraries are missing. The bootstrap verifies they are *importable*, not
+just that the interpreter exists. 3.12 rather than latest because what matters is
+prebuilt wheel availability for pandas/numpy/matplotlib.
+
+**VS Code extensions are installed per-profile, not as SYSTEM.** A plain
+`code --install-extension` from the bootstrap would put them in
+`C:\Windows\System32\config\systemprofile\.vscode` — invisible to the account
+that RDPs in. They are installed with an explicit `--extensions-dir` for every
+real profile plus `C:\Users\Default`, so a profile created later inherits them.
+Same class of bug as the file-extension registry setting below.
 
 **Tabular Editor comes from its GitHub release, not Chocolatey.** There is no
 `tabulareditor` Chocolatey package — `choco install tabulareditor` fails with

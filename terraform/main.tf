@@ -393,6 +393,12 @@ resource "azurerm_virtual_machine_extension" "bootstrap" {
       "-SqlAdminPasswordB64 \"${base64encode(local.admin_password)}\"",
       "-WindowsAdminUser \"${var.admin_username}\"",
       "-TimeZoneId \"${var.auto_shutdown_timezone}\"",
+      # Comma-joined rather than passed as separate arguments: a PowerShell
+      # array parameter across the cmd.exe boundary is more quoting risk than
+      # this is worth.
+      "-ExtraChocoPackages \"${join(",", var.extra_choco_packages)}\"",
+      "-PythonPackages \"${join(",", var.python_packages)}\"",
+      "-VsCodeExtensions \"${join(",", var.vscode_extensions)}\"",
       "-PayloadVersion \"${local.payload_version}\"",
     ])
   })

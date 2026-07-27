@@ -93,6 +93,46 @@ variable "sql_admin_login" {
   default     = "pl300sql"
 }
 
+variable "extra_choco_packages" {
+  description = <<-EOT
+    Additional Chocolatey packages to install, beyond the standard set (Power BI
+    Desktop, SSMS, DAX Studio, Tabular Editor, VS Code, Python, Git, 7-Zip,
+    Notepad++). Failures here are logged as warnings and never fail the build.
+
+    Useful ones for PL-300, all deliberately off by default:
+      "powerbigateway" - On-premises data gateway. Installs the service but it
+                         cannot be registered without a Power BI/Fabric account,
+                         so it is only worth it if you want to walk through the
+                         gateway configuration UI when covering scheduled refresh.
+      "r.project"      - R runtime, if you want to demo R visuals alongside Python.
+      "almtoolkit"     - ALM Toolkit, for semantic model diff/deployment demos.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
+variable "python_packages" {
+  description = <<-EOT
+    Python packages installed machine-wide. pandas and matplotlib are REQUIRED
+    for Power BI Desktop's Python visuals and "Run Python script" to work at all
+    - Power BI shells out to python.exe and hands it a DataFrame, so a bare
+    interpreter produces an error rather than a visual.
+  EOT
+  type        = list(string)
+  default     = ["pandas", "matplotlib", "numpy", "seaborn", "openpyxl", "ipykernel"]
+}
+
+variable "vscode_extensions" {
+  description = "VS Code extensions installed for the RDP user (and baked into the default profile)."
+  type        = list(string)
+  default = [
+    "ms-python.python",             # Python language support + debugger
+    "ms-toolsai.jupyter",           # notebooks, pairs with ipykernel
+    "ms-mssql.mssql",               # query SQL Server without leaving the editor
+    "powerquery.vscode-powerquery", # M language service - useful for Advanced Editor work
+  ]
+}
+
 variable "auto_shutdown_enabled" {
   description = "Create a nightly auto-shutdown schedule. Strongly recommended - the VM bills ~$0.376/hr while running."
   type        = bool

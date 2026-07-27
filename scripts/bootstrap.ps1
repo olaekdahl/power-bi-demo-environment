@@ -35,6 +35,11 @@ param(
     [string] $TimeZoneId       = 'Central Standard Time',
     [string] $RootPath         = 'C:\PL300',
 
+    # Comma-separated lists supplied by Terraform.
+    [string] $ExtraChocoPackages = '',
+    [string] $PythonPackages     = 'pandas,matplotlib,numpy,seaborn,openpyxl,ipykernel',
+    [string] $VsCodeExtensions   = 'ms-python.python,ms-toolsai.jupyter,ms-mssql.mssql,powerquery.vscode-powerquery',
+
     # Hash of the whole payload (this script, the two .sql files, the demo data
     # zip), supplied by Terraform. Nothing reads it - its purpose is to change
     # the extension's settings when the payload changes, so that editing a demo
@@ -154,6 +159,45 @@ function Get-RemoteFile {
     }
 }
 
+function Invoke-Native {
+    <#
+        Run a native executable, log its merged output, and judge success by exit
+        code only.
+
+        This exists because $ErrorActionPreference='Stop' (set at the top of this
+        script, and correct for the PowerShell parts) turns anything a native
+        command writes to stderr into a *terminating* error once it is merged with
+        2>&1. Plenty of well-behaved tools write harmless notes there:
+
+          pip  -> "WARNING: The scripts pip.exe ... is not on PATH"
+          code -> "(node:...) [DEP0169] DeprecationWarning: url.parse() ..."
+
+        Both of those silently aborted their install steps before this helper
+        existed. Exit code is the only trustworthy signal, so use it.
+
+        Note this is a Windows PowerShell 5.1 behaviour, which is what
+        powershell.exe under the Custom Script Extension gives you. PowerShell 7
+        yields plain strings from a merged native stream and does not throw, so
+        the bug does not reproduce if you test with pwsh.
+    #>
+    param(
+        [Parameter(Mandatory)][string] $FilePath,
+        [string[]] $Arguments = @(),
+        [int[]] $SuccessExitCodes = @(0),
+        [switch] $IgnoreExitCode
+    )
+    $out = & {
+        $ErrorActionPreference = 'Continue'
+        & $FilePath @Arguments 2>&1
+    }
+    $code = $LASTEXITCODE
+    $out | ForEach-Object { Add-Content -Path $LogFile -Value "        $_" -Encoding utf8 }
+    if (-not $IgnoreExitCode -and $code -notin $SuccessExitCodes) {
+        throw "$(Split-Path $FilePath -Leaf) exited with $code"
+    }
+    return $out
+}
+
 Write-Log '================ PL-300 bootstrap starting ================'
 Write-Log "script dir : $ScriptDir"
 Write-Log "root path  : $($Paths.Root)"
@@ -252,11 +296,8 @@ function Install-ChocoPackage {
     $argv = @('install', $Id, '-y', '--no-progress', '--limit-output', '--ignore-checksums')
     if ($ExtraArgs) { $argv += $ExtraArgs.Split(' ') }
     Write-Log "    choco $($argv -join ' ')"
-    & choco.exe @argv 2>&1 | ForEach-Object { Add-Content -Path $LogFile -Value "        $_" -Encoding utf8 }
     # 3010 = success, reboot required. Chocolatey surfaces it as a failure code.
-    if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
-        throw "choco install $Id exited with $LASTEXITCODE"
-    }
+    Invoke-Native -FilePath 'choco.exe' -Arguments $argv -SuccessExitCodes 0, 3010 | Out-Null
 }
 
 Invoke-Step 'Install Power BI Desktop' -Critical {
@@ -282,12 +323,128 @@ Invoke-Step 'Install SQL Server Management Studio' {
 
 Invoke-Step 'Install supporting tools' {
     # Not strictly required for PL-300, but DAX Studio comes up constantly once
-    # the class reaches modelling and DAX optimisation.
+    # the class reaches modelling and DAX optimisation. Git is here because
+    # Power BI Desktop's PBIP project format is text-based and version
+    # controllable, which is worth a mention alongside VS Code.
     # (Tabular Editor is handled separately - there is no Chocolatey package for
     # it; `choco install tabulareditor` fails with "package was not found".)
-    foreach ($pkg in 'daxstudio', '7zip', 'notepadplusplus') {
+    foreach ($pkg in 'daxstudio', 'vscode', 'git', '7zip', 'notepadplusplus') {
         try { Install-ChocoPackage -Id $pkg }
         catch { Write-Log "    optional package '$pkg' failed: $($_.Exception.Message)" -Level WARN }
+    }
+}
+
+Invoke-Step 'Install Python and the libraries Power BI needs' {
+    # Pinned to 3.12 rather than "latest": Power BI Desktop just shells out to
+    # python.exe, so what actually matters is that pandas/matplotlib/numpy have
+    # prebuilt wheels for the interpreter. 3.12 is the safest bet for that.
+    Install-ChocoPackage -Id 'python312'
+
+    $python = @(
+        'C:\Python312\python.exe',
+        'C:\Program Files\Python312\python.exe',
+        "$env:ProgramFiles\Python312\python.exe"
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+    if (-not $python) {
+        $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+        $python = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
+    }
+    if (-not $python) { throw 'Python installed but python.exe could not be located.' }
+    Write-Log "    interpreter: $python"
+
+    Invoke-Native -FilePath $python `
+        -Arguments @('-m', 'pip', 'install', '--upgrade', 'pip', '--no-warn-script-location') | Out-Null
+
+    $pkgs = @($PythonPackages -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($pkgs.Count) {
+        Write-Log "    pip install $($pkgs -join ' ')"
+        Invoke-Native -FilePath $python `
+            -Arguments (@('-m', 'pip', 'install', '--no-warn-script-location') + $pkgs) | Out-Null
+    }
+
+    # Confirm here as well as in the verify step, so a failure is attributed to
+    # this step rather than surfacing much later.
+    $probe = Invoke-Native -FilePath $python `
+        -Arguments @('-c', 'import pandas, matplotlib, numpy; print(pandas.__version__)')
+    Write-Log "    pandas $($probe | Select-Object -First 1) importable"
+
+    # Power BI Desktop finds interpreters via this registry key; the all-users
+    # Chocolatey install writes it, so just confirm rather than assume.
+    $reg = 'HKLM:\SOFTWARE\Python\PythonCore\3.12\InstallPath'
+    if (Test-Path $reg) {
+        Write-Log "    registered for Power BI auto-detection: $((Get-ItemProperty $reg).'(default)')"
+    }
+    else {
+        Write-Log '    HKLM Python registration missing - set the path manually in Power BI Options' -Level WARN
+    }
+
+    $script:PythonExe = $python
+}
+
+Invoke-Step 'Install VS Code extensions' {
+    <#
+        Extensions must NOT be installed with a bare `code --install-extension`
+        here: this script runs as SYSTEM, so they would land in
+        C:\Windows\System32\config\systemprofile\.vscode and be invisible to the
+        account that actually RDPs in. Install into each real profile's
+        extensions directory explicitly, plus C:\Users\Default so any profile
+        created later inherits them.
+    #>
+    $code = @(
+        "$env:ProgramFiles\Microsoft VS Code\bin\code.cmd",
+        "${env:ProgramFiles(x86)}\Microsoft VS Code\bin\code.cmd"
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $code) { throw 'VS Code is installed but code.cmd was not found.' }
+
+    $exts = @($VsCodeExtensions -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if (-not $exts.Count) { Write-Log '    none requested'; return }
+
+    $targets = @('C:\Users\Default')
+    Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notin @('Default', 'Default User', 'Public', 'All Users') } |
+        ForEach-Object { $targets += $_.FullName }
+    Write-Log "    profiles: $(($targets | Split-Path -Leaf) -join ', ')"
+
+    # Keep SYSTEM's own VS Code state out of the way.
+    $scratch = Join-Path $env:TEMP 'pl300-vscode-userdata'
+    New-Item -ItemType Directory -Path $scratch -Force | Out-Null
+
+    $failures = @()
+    foreach ($target in $targets) {
+        $extDir = Join-Path $target '.vscode\extensions'
+        New-Item -ItemType Directory -Path $extDir -Force | Out-Null
+        foreach ($ext in $exts) {
+            try {
+                Invoke-Native -FilePath $code -Arguments @(
+                    '--install-extension', $ext,
+                    '--extensions-dir', $extDir,
+                    '--user-data-dir', $scratch,
+                    '--force') | Out-Null
+            }
+            catch {
+                $failures += "$ext -> $(Split-Path $target -Leaf)"
+                Write-Log "    could not install '$ext' for $(Split-Path $target -Leaf)" -Level WARN
+            }
+        }
+        $n = (Get-ChildItem $extDir -Directory -ErrorAction SilentlyContinue).Count
+        Write-Log "    $(Split-Path $target -Leaf): $n extension(s)"
+    }
+    Remove-Item $scratch -Recurse -Force -ErrorAction SilentlyContinue
+
+    # Extensions are a convenience, not a requirement for the class - report a
+    # partial failure without taking the whole bootstrap down with it.
+    if ($failures.Count -eq ($exts.Count * $targets.Count)) {
+        throw "No VS Code extensions could be installed: $($failures -join '; ')"
+    }
+}
+
+Invoke-Step 'Install optional extra packages' {
+    $extra = @($ExtraChocoPackages -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if (-not $extra.Count) { Write-Log '    none requested'; return }
+    foreach ($pkg in $extra) {
+        try { Install-ChocoPackage -Id $pkg }
+        catch { Write-Log "    extra package '$pkg' failed: $($_.Exception.Message)" -Level WARN }
     }
 }
 
@@ -587,8 +744,33 @@ related to each other in one model. The PDF figures reconcile with the CSV data,
 which makes a good "validate your model" exercise.
 
 ## Tools installed
-Power BI Desktop, SQL Server Management Studio, DAX Studio, Tabular Editor,
-7-Zip, Notepad++.
+Power BI Desktop, SQL Server Management Studio, DAX Studio, Tabular Editor 2,
+VS Code, Python 3.12, Git, 7-Zip, Notepad++.
+
+## Python in Power BI
+Python 3.12 is installed machine-wide with ``pandas``, ``matplotlib``, ``numpy``,
+``seaborn``, ``openpyxl`` and ``ipykernel``. Power BI Desktop needs pandas and
+matplotlib present or its Python features error out instead of rendering.
+
+Check it is detected: **File > Options and settings > Options > Python scripting**.
+
+Three places Python shows up:
+1. **Get Data > Other > Python script** - generate or fetch a table in code.
+2. **Transform Data > Transform > Run Python script** - the ``dataset`` variable
+   holds the current table as a DataFrame; return a DataFrame to continue.
+3. **Python visual** on the report canvas - drag fields in, then plot. Must end
+   with ``matplotlib.pyplot.show()``.
+
+A Python visual that works against the demo data:
+
+    import matplotlib.pyplot as plt
+    dataset.groupby('Category')['SalesAmount'].sum().plot(kind='barh')
+    plt.tight_layout()
+    plt.show()
+
+VS Code is installed with the Python, Jupyter, SQL Server and Power Query (M)
+extensions - handy for editing M outside the Advanced Editor and for querying
+SQL Server without opening SSMS.
 
 ## Logs
 Bootstrap log: C:\PL300\Logs\bootstrap.log
@@ -643,10 +825,37 @@ Invoke-Step 'Verify installation' {
     foreach ($tool in @(
         @{ Name = 'DaxStudio';     Paths = @('C:\Program Files\DAX Studio\DaxStudio.exe',
                                              'C:\Program Files (x86)\DAX Studio\DaxStudio.exe') },
-        @{ Name = 'TabularEditor'; Paths = @((Join-Path $Paths.Root 'Tools\TabularEditor\TabularEditor.exe')) }
+        @{ Name = 'TabularEditor'; Paths = @((Join-Path $Paths.Root 'Tools\TabularEditor\TabularEditor.exe')) },
+        @{ Name = 'VSCode';        Paths = @("$env:ProgramFiles\Microsoft VS Code\Code.exe",
+                                             "${env:ProgramFiles(x86)}\Microsoft VS Code\Code.exe") },
+        @{ Name = 'Git';           Paths = @("$env:ProgramFiles\Git\cmd\git.exe") },
+        @{ Name = 'Python';        Paths = @('C:\Python312\python.exe',
+                                             "$env:ProgramFiles\Python312\python.exe") }
     )) {
         $found = $tool.Paths | Where-Object { Test-Path $_ } | Select-Object -First 1
         $checks[$tool.Name] = if ($found) { $found } else { 'NOT FOUND' }
+    }
+
+    # A bare interpreter is not enough - Power BI's Python visuals need pandas
+    # and matplotlib importable, so check that rather than just the exe.
+    if ($checks['Python'] -ne 'NOT FOUND') {
+        $probe = 'import pandas, matplotlib, numpy; print(pandas.__version__, matplotlib.__version__, numpy.__version__)'
+        try {
+            $out = Invoke-Native -FilePath $checks['Python'] -Arguments @('-c', $probe)
+            $checks['PythonDataLibs'] = "pandas/matplotlib/numpy $($out | Select-Object -First 1)"
+        }
+        catch {
+            $checks['PythonDataLibs'] = "IMPORT FAILED: $($_.Exception.Message)"
+        }
+    }
+
+    $userExtDir    = "C:\Users\$WindowsAdminUser\.vscode\extensions"
+    $defaultExtDir = 'C:\Users\Default\.vscode\extensions'
+    $defaultCount  = (Get-ChildItem $defaultExtDir -Directory -ErrorAction SilentlyContinue).Count
+    $checks['VSCodeExtensions'] = if (Test-Path $userExtDir) {
+        "$((Get-ChildItem $userExtDir -Directory -ErrorAction SilentlyContinue).Count) for $WindowsAdminUser, $defaultCount staged in Default"
+    } else {
+        "$defaultCount staged in C:\Users\Default ($WindowsAdminUser profile is created at first logon)"
     }
 
     try {
@@ -687,6 +896,9 @@ Invoke-Step 'Verify installation' {
 
     if ($checks['PowerBIDesktop'] -eq 'NOT FOUND') { throw 'Power BI Desktop is not installed.' }
     if ($checks['Databases'] -notmatch 'AdventureWorksDW2022') { throw 'AdventureWorksDW2022 was not restored.' }
+    if ($checks['PythonDataLibs'] -like 'IMPORT FAILED*') {
+        throw "Python is installed but Power BI's required libraries are not importable: $($checks['PythonDataLibs'])"
+    }
 }
 
 # --------------------------------------------------------------------------- #
