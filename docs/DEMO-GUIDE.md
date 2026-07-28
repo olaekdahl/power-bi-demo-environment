@@ -565,18 +565,26 @@ ggplot(dataset, aes(x = reorder(Category, SalesAmount), y = SalesAmount)) +
 
 **Forecasting** — the demo that justifies R visuals existing. Power BI's built-in
 analytics forecast is a black box; this is auto-fitted ARIMA with a visible model.
-Drag in a date field and `SalesAmount`:
+Drag in `MonthNumber` and `Revenue` from `MonthlyRevenue`:
 
 ```r
 library(forecast)
-# dataset arrives with the fields you dragged in, aggregated by Power BI
-ts_data <- ts(dataset$SalesAmount, frequency = 12)
-fit <- auto.arima(ts_data)
+# `dataset` columns are named after the fields you dragged in, so this must
+# say Revenue, not SalesAmount. A wrong name is silently NULL, and the error
+# surfaces one line later as "'ts' object must have one or more observations".
+# Sort first: ts() assumes the rows are already in chronological order.
+d       <- dataset[order(dataset$MonthNumber), ]
+ts_data <- ts(d$Revenue, frequency = 12)
+fit     <- auto.arima(ts_data)
 plot(forecast(fit, h = 6),
      main = paste0("6-month forecast - ARIMA(",
                    paste(arimaorder(fit), collapse = ","), ")"),
      xlab = "Period", ylab = "Revenue")
 ```
+
+The full version, with confidence-band styling and a legend, is
+`powerbi/scripts/r-forecast-arima.R` — that file is generated from
+`scripts/generate-pbip.py` and is the copy to trust if the two ever drift.
 
 Verified on this VM against the monthly revenue figures from
 `Quarterly_Summary.pdf`: `auto.arima` selects ARIMA(2,0,0) and forecasts
