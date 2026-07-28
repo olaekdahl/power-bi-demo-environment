@@ -308,8 +308,183 @@ Then contrast with `AdventureWorks2022`: `Sales.SalesOrderHeader` +
 + `Production.ProductCategory` — five tables and three joins to answer "sales by
 category", which is exactly why the DW exists.
 
+### Demo 12a — DAX from zero, on the Reseller Sales model
+**Module: Add measures to Power BI Desktop models**
+
+This is the ladder to walk up on the **Reseller Sales** star schema — the one the
+official labs build:
+
+```
+Reseller Sales  *→1  Product  *→1  Product Subcategory  *→1  Product Category
+Reseller Sales  *→1  Date
+```
+
+| Table | Fields in the model |
+|---|---|
+| Reseller Sales | `OrderDateKey`, `OrderQuantity`, `ProductKey`, `UnitPrice` |
+| Product | `Color`, `Product Name`, `ProductKey`, `ProductSubcategoryKey` |
+| Product Subcategory | `Subcategory`, + both keys |
+| Product Category | `Category`, `ProductCategoryKey` |
+| Date | `DateKey`, `Day` (a real date), `Month`, `Year`, `Calendar` hierarchy |
+
+Everything below uses only those fields. Each measure has its expected answer, so
+a wrong number is obvious on the projector.
+
+**1. The simplest measure there is.**
+
+```dax
+Total Quantity = SUM ( 'Reseller Sales'[OrderQuantity] )
+```
+
+`SUM` takes one column and adds it up. **214,378.** Start here so the class sees a
+measure is just a named calculation, nothing more.
+
+**2. Counting rows instead of adding a column.**
+
+```dax
+Order Lines = COUNTROWS ( 'Reseller Sales' )
+```
+
+**60,855.** Note it takes a *table*, not a column. This model has no order-number
+column, so `Order Lines` counts lines, not orders — say so out loud, because
+"count of sales" meaning two different things is a real source of wrong reports.
+
+**3. The measure that teaches row context.**
+
+```dax
+Revenue = SUMX ( 'Reseller Sales', 'Reseller Sales'[OrderQuantity] * 'Reseller Sales'[UnitPrice] )
+```
+
+**$80,978,105.** This model deliberately has no `SalesAmount` column, so revenue
+has to be computed. Try `SUM ( [OrderQuantity] * [UnitPrice] )` first and let it
+fail — `SUM` wants a column and you handed it an expression. `SUMX` walks the
+table row by row, multiplies, then adds the results.
+
+This is the single most important idea in the module: **X-functions iterate.**
+Multiplying the two totals ($444.43 avg price × 214,378) would be wildly wrong.
+
+**4. Averages that lie.**
+
+```dax
+Average Unit Price = AVERAGE ( 'Reseller Sales'[UnitPrice] )   -- $444.43
+Revenue per Unit   = DIVIDE ( [Revenue], [Total Quantity] )    -- $377.74
+```
+
+Both are "the average price" in English, and they differ by 18%. `AVERAGE` treats
+a line selling 1 item and a line selling 40 as equal; `DIVIDE` weights by volume.
+Ask the class which one the sales director meant. Also worth noting: `DIVIDE`
+returns blank on divide-by-zero where `/` throws an error.
+
+**5. Measure vs calculated column.**
+
+```dax
+-- Calculated column, on Reseller Sales. Computed at refresh, stored in the model.
+Line Revenue = 'Reseller Sales'[OrderQuantity] * 'Reseller Sales'[UnitPrice]
+
+-- Then this gives the identical $80,978,105:
+Revenue via Column = SUM ( 'Reseller Sales'[Line Revenue] )
+```
+
+Same answer, different cost. The column adds 60,855 stored values to the model
+and cannot react to slicers; the measure computes at query time and costs nothing
+to store. Rule of thumb: **columns when you need to slice or filter by it,
+measures when you need to aggregate it.**
+
+**6. The relationships do the work.**
+
+Drop `Category` on rows with `[Revenue]` — no new DAX at all:
+
+| Category | Revenue |
+|---|---|
+| Bikes | $66,797,022 |
+| Components | $11,804,291 |
+| Clothing | $1,798,805 |
+| Accessories | $577,986 |
+
+The filter travels `Product Category → Product Subcategory → Product → Reseller
+Sales`, three hops up the snowflake. Delete one relationship and watch every row
+collapse to the same $80.9M total — the fastest way to make filter propagation
+concrete.
+
+**7. Changing the filter, with CALCULATE.**
+
+```dax
+Bikes Revenue = CALCULATE ( [Revenue], 'Product Category'[Category] = "Bikes" )
+```
+
+**$66,797,022**, and it stays $66.8M even in the Clothing row. `CALCULATE` is the
+only function that modifies filter context — its filter argument *replaces* the
+one coming from the visual.
+
+**8. Percent of total — and a snowflake trap.**
+
+```dax
+All Category Revenue = CALCULATE ( [Revenue], REMOVEFILTERS ( 'Product Category' ) )
+Category Share %     = DIVIDE ( [Revenue], [All Category Revenue] )
+```
+
+Bikes = 82.5%. Now switch the visual to `Subcategory` and the percentages break —
+they all read 100%. `REMOVEFILTERS` cleared `Product Category` but the visual is
+now filtering `Product Subcategory`, a different table. Fix it by clearing the
+whole branch:
+
+```dax
+All Product Revenue =
+CALCULATE ( [Revenue], REMOVEFILTERS ( 'Product Category', 'Product Subcategory', Product ) )
+```
+
+Road Bikes then reads 36.3% of $80.9M. This trap is specific to snowflakes and
+catches people constantly — it is the best argument in the course for flattening
+the product tables into one dimension.
+
+**9. Time intelligence.**
+
+First **Table tools → Mark as date table** on `Date`, using `Day`. Time
+intelligence silently returns blank without it, which is the failure to
+demonstrate on purpose.
+
+```dax
+Revenue YTD = TOTALYTD ( [Revenue], 'Date'[Day] )
+
+Revenue LY  = CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( 'Date'[Day] ) )
+
+YoY %       = DIVIDE ( [Revenue] - [Revenue LY], [Revenue LY] )
+```
+
+By year: 2010 $489,329 · 2011 $18,351,294 · 2012 $28,297,496 · 2013 $33,839,986.
+
+**Read those dates before trusting the growth numbers.** The data runs
+2010-12-29 to 2013-11-29, so 2010 is three days and 2013 stops in November. YoY
+for 2011 comes out at roughly +3,650% against a three-day "year", and 2013 looks
+weak only because December is missing. Partial years wrecking a time-intelligence
+comparison is worth more class time than the syntax is.
+
+**10. Two field-list gotchas in this model.**
+
+`Year` carries a Σ — it is a whole number, so dropping it into a visual *adds the
+years together* instead of listing them. Set **Summarization → Don't summarize**
+(or use the `Calendar` hierarchy). And `Month` is text with no
+month-number column, so it sorts April, August, December. Add one and use **Sort
+by column**:
+
+```dax
+Month Number = MONTH ( 'Date'[Day] )      -- calculated column on Date
+```
+
+Then select `Month` → **Column tools → Sort by column → Month Number**. Chronological
+sorting is a guaranteed exam topic and a guaranteed real-world bug.
+
+**Stretch, if the room is quick.** 209 products have no subcategory, so a matrix
+by `Category` shows a blank row that does not tie to the $80.9M total —
+`ISBLANK` and referential-integrity handling fall straight out of it.
+
 ### Demo 13 — Measures and time intelligence
 **Modules: Add measures / Use DAX time intelligence functions**
+
+> Demo 12a is the gentle on-ramp on the **Reseller Sales** model. This demo is on
+> **Internet Sales** with raw `Fact…`/`Dim…` names, and it moves faster. Pick one
+> model for the DAX block and stay in it — switching mid-session means every field
+> name changes and the class loses the thread.
 
 ```dax
 Total Sales = SUM ( FactInternetSales[SalesAmount] )
@@ -633,7 +808,8 @@ single worst offender in a real model.
 | 1 | Get data across formats | Demos 1, 3, 4, 5, 6, 7 |
 | 1 | Clean and transform | Demo 2 (the messy CSV), Demo 11 |
 | 2 | Model design | Demos 12, 8 (reconciliation) |
-| 2 | DAX | Demos 13, 14 |
+| 2 | DAX — first principles | Demo 12a (Reseller Sales; start here) |
+| 2 | DAX — filter context | Demos 13, 14 |
 | 3 | Visualize and analyze | AdventureWorksDW model built on day 2 |
 | 2 | Spatial and maps | Demo 17 — pairs naturally with the Store dimension |
 | 3 | Analytics extensibility | Demos 16 (Python) and 18 (R) — pick one, or contrast both |
