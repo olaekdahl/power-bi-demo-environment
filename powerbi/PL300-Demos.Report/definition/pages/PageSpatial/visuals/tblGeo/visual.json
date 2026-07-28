@@ -1,0 +1,126 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblGeo",
+  "position": {
+    "x": 16,
+    "y": 520,
+    "z": 0,
+    "width": 1248,
+    "height": 184,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreGeography"
+                    }
+                  },
+                  "Property": "StoreName"
+                }
+              },
+              "queryRef": "StoreGeography.StoreName",
+              "nativeQueryRef": "StoreName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreGeography"
+                    }
+                  },
+                  "Property": "RegionName"
+                }
+              },
+              "queryRef": "StoreGeography.RegionName",
+              "nativeQueryRef": "Region"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreGeography"
+                    }
+                  },
+                  "Property": "WellKnownText"
+                }
+              },
+              "queryRef": "StoreGeography.WellKnownText",
+              "nativeQueryRef": "WKT"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "StoreGeography"
+                        }
+                      },
+                      "Property": "CustomersWithin25km"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(StoreGeography.CustomersWithin25km)",
+              "nativeQueryRef": "Within 25km"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "StoreGeography"
+                        }
+                      },
+                      "Property": "CustomersWithin50km"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(StoreGeography.CustomersWithin50km)",
+              "nativeQueryRef": "Within 50km"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Well-known text straight from the geography column'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

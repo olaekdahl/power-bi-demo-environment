@@ -20,6 +20,7 @@ Course reference: [PL-300T00 study guide](https://learn.microsoft.com/en-us/trai
 | Python | `pandas`, `matplotlib`, `numpy`, `seaborn`, `openpyxl`, `ipykernel` — machine-wide |
 | R | `ggplot2`, `dplyr`, `scales`, `forecast` — in the R install's own library |
 | Demo files | 27 files on the VM at `C:\PL300\Data` (CSV, Excel, JSON, XML, PDF, GeoJSON, TopoJSON), also in blob storage |
+| Power BI solution | `powerbi/` — a 5-page `.pbip` with Python, R and SQL `geography` visuals |
 | Access | RDP 3389 and SQL 1433, restricted to **your public IP only** |
 | Cost control | Nightly auto-shutdown, plus start/stop scripts |
 
@@ -115,11 +116,22 @@ scripts/
   rerun-bootstrap.sh     idempotent in-place repair
   destroy.sh             tear down
   generate-demo-data.py  builds the CSV/Excel/JSON/XML/PDF/spatial set
+  export-spatial-csv.sh  pull the SQL geography views off the VM as CSV
+  generate-pbip.py       builds the powerbi/ Power BI solution (both report formats)
+  validate-pbip.py       checks the PBIR output against Microsoft's JSON schemas
+  snapshot-report.sh     opens the solution on the VM and screenshots it
+  snapshot.ps1           runs in the VM's interactive session to capture the screen
+  ui-probe.sh            drives GUI dialogs UI Automation cannot see
   bootstrap.ps1          runs on the VM: tools, SQL config, restores, demo files
   sql/
     configure-sql.sql            login, mixed-mode auth, memory cap
     restore-adventureworks.sql   header-driven restore with MOVE
     create-spatial-demo.sql      geography points/polygons, spatial index, views
+powerbi/
+  PL300-Demos.pbip       the solution; open this in Power BI Desktop
+  README.md              pages, the model, and the two report formats
+  LIVE-SQL-QUERIES.md    swap the inline spatial tables for live SQL
+  scripts/               the R/Python bodies as standalone files
 docs/
   CONNECT.md       how to get in
   DEMO-GUIDE.md    demo file catalogue mapped to PL-300 modules
@@ -237,6 +249,28 @@ globbed first and so reported the *older* SSMS as the installed one.
 "package was not found with the source(s) listed". It ships as a portable zip, so
 the bootstrap unpacks it to `C:\PL300\Tools\TabularEditor` and drops a desktop
 shortcut.
+
+**The Power BI report ships in two formats.** Microsoft documents `report.json`
+(PBIR-Legacy) as a format that *"doesn't support external editing"*, and that is
+literal: a hand-authored `report.json` keeps visual types and field bindings but
+Power BI silently drops every `objects` entry, so R/Python script bodies never load
+and visual titles fall back to auto-generated ones. The generator therefore emits
+both `report.json` (what Desktop reads on a stock install, so the solution works
+today) and the documented, schema-validated PBIR `definition/` folder (which fixes
+both problems once the PBIR preview feature is enabled). `scripts/validate-pbip.py`
+checks the PBIR output against Microsoft's published schemas, turning a five-minute
+render cycle into a one-second check — it is how the missing required
+`layoutOptimization` property was found. Details in `powerbi/README.md`.
+
+**Validating a report means actually rendering it.** `scripts/snapshot-report.sh`
+uploads the solution, opens it in Power BI Desktop on the VM, refreshes the model,
+and brings back a PNG. Three things make that work and are easy to get wrong:
+`az vm run-command` runs as SYSTEM in session 0 which has *no desktop* (captures come
+back black), so the capture runs from a scheduled task with `-LogonType Interactive`;
+a `.pbip` stores no data cache so the model opens empty and must be refreshed; and the
+"Enable script visuals" consent is a WebView2 dialog that UI Automation cannot see at
+all, so it is located by the accent colour of its button — pressing Escape *cancels*
+it and silently disables every script visual.
 
 **Terraform needs the VM running.** `azurerm_mssql_virtual_machine` cannot be
 refreshed while the VM is deallocated — the Azure API returns

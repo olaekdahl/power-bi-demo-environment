@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "PL300-Demos"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "b28c7f14-9a3d-4e62-8f07-1c5d93ab6e20"
+  }
+}

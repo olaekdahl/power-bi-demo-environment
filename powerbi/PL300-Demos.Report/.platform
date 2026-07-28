@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "PL300-Demos"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "6f1d2b7a-3c4e-4a51-9b0d-7e2f8a1c4d55"
+  }
+}

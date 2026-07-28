@@ -16,3 +16,6 @@ venv/
 
 # Secrets / connection notes emitted by scripts
 CONNECTION-INFO.md
+.snapshots/
+scripts/schemas/
+.spatial-export/

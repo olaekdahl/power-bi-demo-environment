@@ -1,0 +1,72 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "pyVisual",
+  "position": {
+    "x": 16,
+    "y": 108,
+    "z": 0,
+    "width": 1248,
+    "height": 596,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pythonVisual",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategorySales"
+                    }
+                  },
+                  "Property": "Category"
+                }
+              },
+              "queryRef": "CategorySales.Category",
+              "nativeQueryRef": "Category"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CategorySales"
+                        }
+                      },
+                      "Property": "SalesAmount"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(CategorySales.SalesAmount)",
+              "nativeQueryRef": "SalesAmount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'# Power BI hands the fields you dropped in to this script as the\n# pandas DataFrame `dataset`. It must finish by calling plt.show().\n#\n# Do NOT call matplotlib.use(\"Agg\") here. Power BI sets up its own backend and\n# hooks plt.show() to capture the figure; overriding the backend makes show() a\n# no-op and the visual renders completely blank with no error.\nimport matplotlib.pyplot as plt\n\ndf = dataset.groupby(\"Category\", as_index=False)[\"SalesAmount\"].sum()\ndf = df.sort_values(\"SalesAmount\")\n\nfig, ax = plt.subplots(figsize=(8, 4.5))\nbars = ax.barh(df[\"Category\"], df[\"SalesAmount\"], color=\"#1F4E79\")\nax.set_xlabel(\"Revenue (USD)\")\nax.set_title(\"Revenue by Category - built by Python in Power BI\", fontsize=13)\nax.spines[[\"top\", \"right\"]].set_visible(False)\nfor b, v in zip(bars, df[\"SalesAmount\"]):\n    ax.text(v, b.get_y() + b.get_height() / 2, f\" ${v/1e6:.2f}M\",\n            va=\"center\", fontsize=10, color=\"#1F4E79\")\nax.set_xlim(0, df[\"SalesAmount\"].max() * 1.18)\nplt.tight_layout()\nplt.show()\n'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

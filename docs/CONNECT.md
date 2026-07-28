@@ -126,7 +126,39 @@ terraform -chdir=terraform output -raw storage_account_key
 In Power BI Desktop: **Get Data → Azure → Azure Blob Storage**, paste the
 container URL, and authenticate with the **Account key**.
 
-## 7. When you are done
+## 7. The ready-made Power BI solution
+
+`powerbi/PL300-Demos.pbip` in this repo is a five-page report covering Python, R and
+SQL Server `geography` visuals. Copy the `powerbi` folder to the VM (or open it from
+a synced location) and open the `.pbip` in Power BI Desktop.
+
+Two things to know before you show it:
+
+- Accept the **Enable script visuals** prompt on first open. Escape *cancels* it,
+  which leaves the R and Python visuals blank with no error shown.
+- Pages 2-4 need a one-time paste of the matching file from `powerbi/scripts/`.
+  [`../powerbi/README.md`](../powerbi/README.md) has the steps and explains why.
+
+## 8. Screen capture from outside the VM
+
+`./scripts/snapshot-report.sh <page> <wait> <name>.png` opens the solution on the VM
+and brings back a screenshot. It needs an interactive session, because a capture from
+`az vm run-command` (which runs as SYSTEM in session 0) has no desktop and comes back
+black.
+
+The session was moved to the VM's console with `tscon` so capture keeps working with
+no RDP client attached:
+
+```powershell
+tscon 2 /dest:console
+```
+
+Reconnecting over RDP is fine and takes the session back; if you do, re-run `tscon`
+before relying on unattended screenshots again. A capture that fails with
+"The handle is invalid" or returns an all-white image means the session is locked or
+disconnected.
+
+## 9. When you are done
 
 ```bash
 ./scripts/stop-vm.sh

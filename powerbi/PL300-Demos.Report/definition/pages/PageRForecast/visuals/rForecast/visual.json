@@ -1,0 +1,72 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "rForecast",
+  "position": {
+    "x": 16,
+    "y": 108,
+    "z": 0,
+    "width": 1248,
+    "height": 596,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "scriptVisual",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MonthlyRevenue"
+                    }
+                  },
+                  "Property": "MonthNumber"
+                }
+              },
+              "queryRef": "MonthlyRevenue.MonthNumber",
+              "nativeQueryRef": "MonthNumber"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "MonthlyRevenue"
+                        }
+                      },
+                      "Property": "Revenue"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(MonthlyRevenue.Revenue)",
+              "nativeQueryRef": "Revenue"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'# auto.arima picks the model, then we forecast 6 periods.\n# This is the demo that justifies R visuals: the built-in Power BI\n# forecast cannot show you which ARIMA order it chose.\nlibrary(forecast)\n\nd  <- dataset[order(dataset$MonthNumber), ]\nts_data <- ts(d$Revenue, frequency = 12)\nfit <- auto.arima(ts_data)\nfc  <- forecast(fit, h = 6)\n\npar(mar = c(4, 4, 3, 1))\nplot(fc,\n     main = paste0(\"6-month revenue forecast - ARIMA(\",\n                   paste(arimaorder(fit), collapse = \",\"), \")\"),\n     xlab = \"Period (year fraction, 12 = monthly)\",\n     ylab = \"Revenue (USD)\",\n     col = \"#1F4E79\", fcol = \"#C00000\", flwd = 2)\ngrid(col = \"#DDDDDD\")\nlegend(\"topleft\", bty = \"n\", cex = 0.9,\n       legend = c(\"Actual\", \"Forecast + 80/95% CI\"),\n       col = c(\"#1F4E79\", \"#C00000\"), lwd = 2)\n'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

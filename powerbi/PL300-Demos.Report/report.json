@@ -1,0 +1,211 @@
+{
+  "config": "{\"version\":\"5.43\",\"themeCollection\":{},\"activeSectionIndex\":0,\"defaultDrillFilterOtherVisuals\":true,\"settings\":{\"useStylableVisualContainerHeader\":true,\"allowChangeFilterTypes\":true,\"useNewFilterPaneExperience\":true,\"useEnhancedTooltips\":true}}",
+  "layoutOptimization": 0,
+  "publicCustomVisuals": [],
+  "sections": [
+    {
+      "name": "PageOverview",
+      "displayName": "1. Overview",
+      "ordinal": 0,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 80,
+          "config": "{\"name\":\"tbOverview\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":80,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"PL-300 Demo Solution\",\"textStyle\":{\"fontSize\":\"20pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"  Python, R and SQL Server spatial visuals. Every table is an inline M literal, so this file opens with no credential prompt.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 100,
+          "z": 0,
+          "width": 300,
+          "height": 110,
+          "config": "{\"name\":\"cardRevenue\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":100,\"z\":0,\"width\":300,\"height\":110,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"MonthlyRevenue.Total Revenue\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"MonthlyRevenue\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Total Revenue\"},\"Name\":\"MonthlyRevenue.Total Revenue\",\"NativeReferenceName\":\"Total Revenue\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 328,
+          "y": 100,
+          "z": 0,
+          "width": 300,
+          "height": 110,
+          "config": "{\"name\":\"cardStores\",\"layouts\":[{\"id\":0,\"position\":{\"x\":328,\"y\":100,\"z\":0,\"width\":300,\"height\":110,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreGeography.Store Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreGeography\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Store Count\"},\"Name\":\"StoreGeography.Store Count\",\"NativeReferenceName\":\"Store Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 100,
+          "z": 0,
+          "width": 300,
+          "height": 110,
+          "config": "{\"name\":\"cardCustomers\",\"layouts\":[{\"id\":0,\"position\":{\"x\":640,\"y\":100,\"z\":0,\"width\":300,\"height\":110,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CustomerGeography.Customer Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerGeography\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Customer Count\"},\"Name\":\"CustomerGeography.Customer Count\",\"NativeReferenceName\":\"Customer Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 222,
+          "z": 0,
+          "width": 612,
+          "height": 290,
+          "config": "{\"name\":\"tblCategory\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":222,\"z\":0,\"width\":612,\"height\":290,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CategorySales.Category\"},{\"queryRef\":\"Sum(CategorySales.SalesAmount)\"},{\"queryRef\":\"Sum(CategorySales.Units)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CategorySales\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Category\"},\"Name\":\"CategorySales.Category\",\"NativeReferenceName\":\"Category\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"SalesAmount\"}},\"Function\":0},\"Name\":\"Sum(CategorySales.SalesAmount)\",\"NativeReferenceName\":\"Revenue\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Units\"}},\"Function\":0},\"Name\":\"Sum(CategorySales.Units)\",\"NativeReferenceName\":\"Units\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 222,
+          "z": 0,
+          "width": 624,
+          "height": 290,
+          "config": "{\"name\":\"chartMonth\",\"layouts\":[{\"id\":0,\"position\":{\"x\":640,\"y\":222,\"z\":0,\"width\":624,\"height\":290,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"columnChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"MonthlyRevenue.MonthName\"}],\"Y\":[{\"queryRef\":\"Sum(MonthlyRevenue.Revenue)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"MonthlyRevenue\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"MonthName\"},\"Name\":\"MonthlyRevenue.MonthName\",\"NativeReferenceName\":\"Month\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Revenue\"}},\"Function\":0},\"Name\":\"Sum(MonthlyRevenue.Revenue)\",\"NativeReferenceName\":\"Revenue\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PagePython",
+      "displayName": "2. Python visual",
+      "ordinal": 1,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 88,
+          "config": "{\"name\":\"tbPy\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":88,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"Python visual  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"matplotlib + pandas. Power BI passes the selected fields to the script as the DataFrame `dataset`; the script must end with plt.show(). Needs pandas and matplotlib installed.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 108,
+          "z": 0,
+          "width": 1248,
+          "height": 596,
+          "config": "{\"name\":\"pyVisual\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":108,\"z\":0,\"width\":1248,\"height\":596,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"pythonVisual\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CategorySales.Category\"},{\"queryRef\":\"Sum(CategorySales.SalesAmount)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CategorySales\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Category\"},\"Name\":\"CategorySales.Category\",\"NativeReferenceName\":\"Category\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"SalesAmount\"}},\"Function\":0},\"Name\":\"Sum(CategorySales.SalesAmount)\",\"NativeReferenceName\":\"SalesAmount\"}]},\"objects\":{\"script\":[{\"properties\":{\"source\":{\"expr\":{\"Literal\":{\"Value\":\"'# Power BI hands the fields you dropped in to this script as the\\n# pandas DataFrame `dataset`. It must finish by calling plt.show().\\n#\\n# Do NOT call matplotlib.use(\\\"Agg\\\") here. Power BI sets up its own backend and\\n# hooks plt.show() to capture the figure; overriding the backend makes show() a\\n# no-op and the visual renders completely blank with no error.\\nimport matplotlib.pyplot as plt\\n\\ndf = dataset.groupby(\\\"Category\\\", as_index=False)[\\\"SalesAmount\\\"].sum()\\ndf = df.sort_values(\\\"SalesAmount\\\")\\n\\nfig, ax = plt.subplots(figsize=(8, 4.5))\\nbars = ax.barh(df[\\\"Category\\\"], df[\\\"SalesAmount\\\"], color=\\\"#1F4E79\\\")\\nax.set_xlabel(\\\"Revenue (USD)\\\")\\nax.set_title(\\\"Revenue by Category - built by Python in Power BI\\\", fontsize=13)\\nax.spines[[\\\"top\\\", \\\"right\\\"]].set_visible(False)\\nfor b, v in zip(bars, df[\\\"SalesAmount\\\"]):\\n    ax.text(v, b.get_y() + b.get_height() / 2, f\\\" ${v/1e6:.2f}M\\\",\\n            va=\\\"center\\\", fontsize=10, color=\\\"#1F4E79\\\")\\nax.set_xlim(0, df[\\\"SalesAmount\\\"].max() * 1.18)\\nplt.tight_layout()\\nplt.show()\\n'\"}}}}}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageR",
+      "displayName": "3. R visual (ggplot2)",
+      "ordinal": 2,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 88,
+          "config": "{\"name\":\"tbR\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":88,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"R visual - ggplot2  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"The same question answered in R. `dataset` arrives as a data frame and the last plot produced becomes the visual. Needs the ggplot2 package.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 108,
+          "z": 0,
+          "width": 1248,
+          "height": 596,
+          "config": "{\"name\":\"rVisual\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":108,\"z\":0,\"width\":1248,\"height\":596,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"scriptVisual\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CategorySales.Category\"},{\"queryRef\":\"Sum(CategorySales.SalesAmount)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CategorySales\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Category\"},\"Name\":\"CategorySales.Category\",\"NativeReferenceName\":\"Category\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"SalesAmount\"}},\"Function\":0},\"Name\":\"Sum(CategorySales.SalesAmount)\",\"NativeReferenceName\":\"SalesAmount\"}]},\"objects\":{\"script\":[{\"properties\":{\"source\":{\"expr\":{\"Literal\":{\"Value\":\"'# `dataset` is the data frame Power BI builds from the fields\\n# dropped into this visual.\\nlibrary(ggplot2)\\n\\nagg <- aggregate(SalesAmount ~ Category, data = dataset, FUN = sum)\\nagg$Label <- paste0(\\\"$\\\", format(round(agg$SalesAmount / 1e6, 2), nsmall = 2), \\\"M\\\")\\n\\nggplot(agg, aes(x = reorder(Category, SalesAmount), y = SalesAmount)) +\\n  geom_col(fill = \\\"#1F4E79\\\", width = 0.65) +\\n  geom_text(aes(label = Label), hjust = -0.12, size = 4.2, colour = \\\"#1F4E79\\\") +\\n  coord_flip() +\\n  scale_y_continuous(expand = expansion(mult = c(0, 0.20))) +\\n  labs(title = \\\"Revenue by Category - built by R (ggplot2)\\\",\\n       x = NULL, y = \\\"Revenue (USD)\\\") +\\n  theme_minimal(base_size = 14) +\\n  theme(panel.grid.major.y = element_blank(),\\n        plot.title = element_text(colour = \\\"#1F4E79\\\", size = 14))\\n'\"}}}}}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageRForecast",
+      "displayName": "4. R forecast (ARIMA)",
+      "ordinal": 3,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 88,
+          "config": "{\"name\":\"tbRf\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":88,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"R visual - auto.arima forecast  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"The case for R visuals: auto.arima picks the model and the title reports which ARIMA order it chose, with 80% and 95% confidence bands. Needs the forecast package.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 108,
+          "z": 0,
+          "width": 1248,
+          "height": 596,
+          "config": "{\"name\":\"rForecast\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":108,\"z\":0,\"width\":1248,\"height\":596,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"scriptVisual\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"MonthlyRevenue.MonthNumber\"},{\"queryRef\":\"Sum(MonthlyRevenue.Revenue)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"MonthlyRevenue\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"MonthNumber\"},\"Name\":\"MonthlyRevenue.MonthNumber\",\"NativeReferenceName\":\"MonthNumber\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Revenue\"}},\"Function\":0},\"Name\":\"Sum(MonthlyRevenue.Revenue)\",\"NativeReferenceName\":\"Revenue\"}]},\"objects\":{\"script\":[{\"properties\":{\"source\":{\"expr\":{\"Literal\":{\"Value\":\"'# auto.arima picks the model, then we forecast 6 periods.\\n# This is the demo that justifies R visuals: the built-in Power BI\\n# forecast cannot show you which ARIMA order it chose.\\nlibrary(forecast)\\n\\nd  <- dataset[order(dataset$MonthNumber), ]\\nts_data <- ts(d$Revenue, frequency = 12)\\nfit <- auto.arima(ts_data)\\nfc  <- forecast(fit, h = 6)\\n\\npar(mar = c(4, 4, 3, 1))\\nplot(fc,\\n     main = paste0(\\\"6-month revenue forecast - ARIMA(\\\",\\n                   paste(arimaorder(fit), collapse = \\\",\\\"), \\\")\\\"),\\n     xlab = \\\"Period (year fraction, 12 = monthly)\\\",\\n     ylab = \\\"Revenue (USD)\\\",\\n     col = \\\"#1F4E79\\\", fcol = \\\"#C00000\\\", flwd = 2)\\ngrid(col = \\\"#DDDDDD\\\")\\nlegend(\\\"topleft\\\", bty = \\\"n\\\", cex = 0.9,\\n       legend = c(\\\"Actual\\\", \\\"Forecast + 80/95% CI\\\"),\\n       col = c(\\\"#1F4E79\\\", \\\"#C00000\\\"), lwd = 2)\\n'\"}}}}}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageSpatial",
+      "displayName": "5. SQL spatial (geography)",
+      "ordinal": 4,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 88,
+          "config": "{\"name\":\"tbSp\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":88,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"SQL Server spatial data  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"Sourced from the geography columns in PL300Demo via dbo.vw_StoreLocations and dbo.vw_CustomerLocations. Power BI cannot read a geography column directly, so those views project .Lat / .Long / .STAsText() for it.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 108,
+          "z": 0,
+          "width": 780,
+          "height": 400,
+          "config": "{\"name\":\"scatterGeo\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":108,\"z\":0,\"width\":780,\"height\":400,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"scatterChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"CustomerGeography.CustomerID\"}],\"X\":[{\"queryRef\":\"Avg(CustomerGeography.Longitude)\"}],\"Y\":[{\"queryRef\":\"Avg(CustomerGeography.Latitude)\"}],\"Series\":[{\"queryRef\":\"CustomerGeography.RegionName\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerGeography\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomerID\"},\"Name\":\"CustomerGeography.CustomerID\",\"NativeReferenceName\":\"CustomerID\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Longitude\"}},\"Function\":1},\"Name\":\"Avg(CustomerGeography.Longitude)\",\"NativeReferenceName\":\"Longitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Latitude\"}},\"Function\":1},\"Name\":\"Avg(CustomerGeography.Latitude)\",\"NativeReferenceName\":\"Latitude\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"CustomerGeography.RegionName\",\"NativeReferenceName\":\"Region\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 812,
+          "y": 108,
+          "z": 0,
+          "width": 452,
+          "height": 400,
+          "config": "{\"name\":\"mapStores\",\"layouts\":[{\"id\":0,\"position\":{\"x\":812,\"y\":108,\"z\":0,\"width\":452,\"height\":400,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"azureMap\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"StoreGeography.City\"}],\"Latitude\":[{\"queryRef\":\"Avg(StoreGeography.Latitude)\"}],\"Longitude\":[{\"queryRef\":\"Avg(StoreGeography.Longitude)\"}],\"Size\":[{\"queryRef\":\"Sum(StoreGeography.CustomersWithin50km)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreGeography\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"City\"},\"Name\":\"StoreGeography.City\",\"NativeReferenceName\":\"City\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Latitude\"}},\"Function\":1},\"Name\":\"Avg(StoreGeography.Latitude)\",\"NativeReferenceName\":\"Latitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Longitude\"}},\"Function\":1},\"Name\":\"Avg(StoreGeography.Longitude)\",\"NativeReferenceName\":\"Longitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin50km\"}},\"Function\":0},\"Name\":\"Sum(StoreGeography.CustomersWithin50km)\",\"NativeReferenceName\":\"Within 50km\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 520,
+          "z": 0,
+          "width": 1248,
+          "height": 184,
+          "config": "{\"name\":\"tblGeo\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":520,\"z\":0,\"width\":1248,\"height\":184,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreGeography.StoreName\"},{\"queryRef\":\"StoreGeography.RegionName\"},{\"queryRef\":\"StoreGeography.WellKnownText\"},{\"queryRef\":\"Sum(StoreGeography.CustomersWithin25km)\"},{\"queryRef\":\"Sum(StoreGeography.CustomersWithin50km)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreGeography\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"StoreName\"},\"Name\":\"StoreGeography.StoreName\",\"NativeReferenceName\":\"StoreName\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"StoreGeography.RegionName\",\"NativeReferenceName\":\"Region\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"WellKnownText\"},\"Name\":\"StoreGeography.WellKnownText\",\"NativeReferenceName\":\"WKT\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin25km\"}},\"Function\":0},\"Name\":\"Sum(StoreGeography.CustomersWithin25km)\",\"NativeReferenceName\":\"Within 25km\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin50km\"}},\"Function\":0},\"Name\":\"Sum(StoreGeography.CustomersWithin50km)\",\"NativeReferenceName\":\"Within 50km\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    }
+  ]
+}

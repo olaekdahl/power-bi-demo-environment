@@ -1,0 +1,72 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "rVisual",
+  "position": {
+    "x": 16,
+    "y": 108,
+    "z": 0,
+    "width": 1248,
+    "height": 596,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "scriptVisual",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategorySales"
+                    }
+                  },
+                  "Property": "Category"
+                }
+              },
+              "queryRef": "CategorySales.Category",
+              "nativeQueryRef": "Category"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CategorySales"
+                        }
+                      },
+                      "Property": "SalesAmount"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(CategorySales.SalesAmount)",
+              "nativeQueryRef": "SalesAmount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'# `dataset` is the data frame Power BI builds from the fields\n# dropped into this visual.\nlibrary(ggplot2)\n\nagg <- aggregate(SalesAmount ~ Category, data = dataset, FUN = sum)\nagg$Label <- paste0(\"$\", format(round(agg$SalesAmount / 1e6, 2), nsmall = 2), \"M\")\n\nggplot(agg, aes(x = reorder(Category, SalesAmount), y = SalesAmount)) +\n  geom_col(fill = \"#1F4E79\", width = 0.65) +\n  geom_text(aes(label = Label), hjust = -0.12, size = 4.2, colour = \"#1F4E79\") +\n  coord_flip() +\n  scale_y_continuous(expand = expansion(mult = c(0, 0.20))) +\n  labs(title = \"Revenue by Category - built by R (ggplot2)\",\n       x = NULL, y = \"Revenue (USD)\") +\n  theme_minimal(base_size = 14) +\n  theme(panel.grid.major.y = element_blank(),\n        plot.title = element_text(colour = \"#1F4E79\", size = 14))\n'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

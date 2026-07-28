@@ -9,6 +9,12 @@ Two independent data sets are available, and they are useful for different thing
 |---|---|---|
 | **AdventureWorks** | SQL Server on the VM | Modelling, DAX, time intelligence, DirectQuery vs Import, RLS |
 | **Contoso Outdoor Co** | `C:\PL300\Data` (files) | Get Data across formats, Power Query transformation, combining sources |
+| **PL300-Demos.pbip** | `powerbi/` in this repo | A ready-made report: Python, R and SQL `geography` visuals. See [`../powerbi/README.md`](../powerbi/README.md) |
+
+> The Power BI solution is a finished exhibit rather than something to build live.
+> Open it when you want to *show* a working Python/R/spatial visual quickly; use the
+> demos below when you want the class to build one. Pages 2-4 need a one-time paste
+> of the matching file from `powerbi/scripts/` - `powerbi/README.md` explains why.
 
 ---
 
@@ -385,6 +391,8 @@ Admin/Member/Contributor roles, which surprises people in production.
 ### Demo 16 — Python in Power BI
 **Modules: Get data / Clean, transform and load / Perform analytics**
 
+A finished example of this is page 2 of `powerbi/PL300-Demos.pbip`.
+
 Python 3.12 is installed machine-wide with `pandas`, `matplotlib`, `numpy`,
 `seaborn`, `openpyxl` and `ipykernel`. Power BI needs pandas and matplotlib
 present or these features error instead of rendering, which is worth stating
@@ -441,7 +449,9 @@ into Power BI than the Advanced Editor.
 ### Demo 17 — Spatial data and map visuals
 **Modules: Get data / Design a semantic model / Create reports**
 
-Two sources are available, and the contrast between them *is* the lesson.
+Two sources are available, and the contrast between them *is* the lesson. Page 5 of
+`powerbi/PL300-Demos.pbip` is a worked example - Azure Maps, a longitude/latitude
+scatter, and a table showing the raw `POINT (...)` well-known text.
 
 #### Files — `C:\PL300\Data\Spatial`
 
@@ -531,6 +541,9 @@ Two gotchas baked into the script as comments, both worth showing:
 
 ### Demo 18 — R in Power BI
 **Modules: Perform analytics / Enhance report designs**
+
+Finished examples of both of these are pages 3 and 4 of
+`powerbi/PL300-Demos.pbip`.
 
 R is installed with `ggplot2`, `dplyr`, `scales` and `forecast`, into the R
 installation's own library so every user sees them. Confirm detection under

@@ -1,0 +1,1201 @@
+{
+  "name": "SemanticModel",
+  "compatibilityLevel": 1550,
+  "model": {
+    "culture": "en-US",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "en-US",
+    "tables": [
+      {
+        "name": "CategorySales",
+        "columns": [
+          {
+            "name": "Category",
+            "dataType": "string",
+            "sourceColumn": "Category",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "SalesAmount",
+            "dataType": "double",
+            "sourceColumn": "SalesAmount",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00"
+          },
+          {
+            "name": "Units",
+            "dataType": "int64",
+            "sourceColumn": "Units",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CategorySales-partition",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = #table(",
+                "        type table [Category = text, SalesAmount = number, Units = Int64.Type],",
+                "        {",
+                "            {\"Camping\", 3302899.72, 11720},",
+                "            {\"Apparel\", 1580292.7, 8899},",
+                "            {\"Hiking\", 1220449.59, 9007},",
+                "            {\"Cooking\", 533588.82, 5997}",
+                "        }",
+                "    )",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Total Sales",
+            "expression": "SUM ( CategorySales[SalesAmount] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0"
+          },
+          {
+            "name": "Total Units",
+            "expression": "SUM ( CategorySales[Units] )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Category Count",
+            "expression": "DISTINCTCOUNT ( CategorySales[Category] )",
+            "formatString": "#,0"
+          }
+        ]
+      },
+      {
+        "name": "MonthlyRevenue",
+        "columns": [
+          {
+            "name": "MonthNumber",
+            "dataType": "int64",
+            "sourceColumn": "MonthNumber",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "MonthName",
+            "dataType": "string",
+            "sourceColumn": "MonthName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "sortByColumn": "MonthNumber"
+          },
+          {
+            "name": "Revenue",
+            "dataType": "double",
+            "sourceColumn": "Revenue",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00"
+          },
+          {
+            "name": "Cost",
+            "dataType": "double",
+            "sourceColumn": "Cost",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00"
+          },
+          {
+            "name": "Margin",
+            "dataType": "double",
+            "sourceColumn": "Margin",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00"
+          },
+          {
+            "name": "Units",
+            "dataType": "int64",
+            "sourceColumn": "Units",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "MonthlyRevenue-partition",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = #table(",
+                "        type table [MonthNumber = Int64.Type, MonthName = text, Revenue = number, Cost = number, Margin = number, Units = Int64.Type],",
+                "        {",
+                "            {1, \"January\", 316903.69, 153054.0, 163849.69, 1743},",
+                "            {2, \"February\", 323267.73, 155603.0, 167664.73, 1712},",
+                "            {3, \"March\", 492160.38, 237696.0, 254464.38, 2606},",
+                "            {4, \"April\", 535219.59, 258009.0, 277210.59, 2912},",
+                "            {5, \"May\", 681035.13, 330573.0, 350462.13, 3779},",
+                "            {6, \"June\", 769083.13, 372311.0, 396772.13, 4054},",
+                "            {7, \"July\", 771467.84, 372721.0, 398746.84, 4076},",
+                "            {8, \"August\", 649033.5, 313274.0, 335759.5, 3481},",
+                "            {9, \"September\", 532329.71, 256673.0, 275656.71, 2849},",
+                "            {10, \"October\", 446901.66, 215211.0, 231690.66, 2380},",
+                "            {11, \"November\", 506517.59, 243205.0, 263312.59, 2716},",
+                "            {12, \"December\", 613310.88, 295502.0, 317808.88, 3315}",
+                "        }",
+                "    )",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Total Revenue",
+            "expression": "SUM ( MonthlyRevenue[Revenue] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0"
+          },
+          {
+            "name": "Total Margin",
+            "expression": "SUM ( MonthlyRevenue[Margin] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0"
+          },
+          {
+            "name": "Margin %",
+            "expression": "DIVIDE ( [Total Margin], [Total Revenue] )",
+            "formatString": "0.0%;-0.0%;0.0%"
+          }
+        ]
+      },
+      {
+        "name": "CategoryMonthlySales",
+        "columns": [
+          {
+            "name": "Category",
+            "dataType": "string",
+            "sourceColumn": "Category",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "MonthNumber",
+            "dataType": "int64",
+            "sourceColumn": "MonthNumber",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "MonthName",
+            "dataType": "string",
+            "sourceColumn": "MonthName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "sortByColumn": "MonthNumber"
+          },
+          {
+            "name": "SalesAmount",
+            "dataType": "double",
+            "sourceColumn": "SalesAmount",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CategoryMonthlySales-partition",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = #table(",
+                "        type table [Category = text, MonthNumber = Int64.Type, MonthName = text, SalesAmount = number],",
+                "        {",
+                "            {\"Apparel\", 1, \"January\", 74531.14},",
+                "            {\"Apparel\", 2, \"February\", 72815.6},",
+                "            {\"Apparel\", 3, \"March\", 118005.0},",
+                "            {\"Apparel\", 4, \"April\", 124853.29},",
+                "            {\"Apparel\", 5, \"May\", 153000.56},",
+                "            {\"Apparel\", 6, \"June\", 179527.68},",
+                "            {\"Apparel\", 7, \"July\", 188412.44},",
+                "            {\"Apparel\", 8, \"August\", 149924.61},",
+                "            {\"Apparel\", 9, \"September\", 133068.72},",
+                "            {\"Apparel\", 10, \"October\", 114238.47},",
+                "            {\"Apparel\", 11, \"November\", 133674.99},",
+                "            {\"Apparel\", 12, \"December\", 138240.2},",
+                "            {\"Camping\", 1, \"January\", 149950.19},",
+                "            {\"Camping\", 2, \"February\", 168202.2},",
+                "            {\"Camping\", 3, \"March\", 248290.46},",
+                "            {\"Camping\", 4, \"April\", 271315.56},",
+                "            {\"Camping\", 5, \"May\", 341975.65},",
+                "            {\"Camping\", 6, \"June\", 385903.43},",
+                "            {\"Camping\", 7, \"July\", 381246.78},",
+                "            {\"Camping\", 8, \"August\", 322201.06},",
+                "            {\"Camping\", 9, \"September\", 260857.21},",
+                "            {\"Camping\", 10, \"October\", 216726.27},",
+                "            {\"Camping\", 11, \"November\", 243152.34},",
+                "            {\"Camping\", 12, \"December\", 313078.57},",
+                "            {\"Cooking\", 1, \"January\", 24531.16},",
+                "            {\"Cooking\", 2, \"February\", 25308.95},",
+                "            {\"Cooking\", 3, \"March\", 39223.86},",
+                "            {\"Cooking\", 4, \"April\", 44954.0},",
+                "            {\"Cooking\", 5, \"May\", 53845.92},",
+                "            {\"Cooking\", 6, \"June\", 64940.0},",
+                "            {\"Cooking\", 7, \"July\", 62346.62},",
+                "            {\"Cooking\", 8, \"August\", 52945.39},",
+                "            {\"Cooking\", 9, \"September\", 43280.76},",
+                "            {\"Cooking\", 10, \"October\", 32254.68},",
+                "            {\"Cooking\", 11, \"November\", 37995.22},",
+                "            {\"Cooking\", 12, \"December\", 51962.26},",
+                "            {\"Hiking\", 1, \"January\", 67891.2},",
+                "            {\"Hiking\", 2, \"February\", 56940.98},",
+                "            {\"Hiking\", 3, \"March\", 86641.06},",
+                "            {\"Hiking\", 4, \"April\", 94096.74},",
+                "            {\"Hiking\", 5, \"May\", 132213.0},",
+                "            {\"Hiking\", 6, \"June\", 138712.02},",
+                "            {\"Hiking\", 7, \"July\", 139462.0},",
+                "            {\"Hiking\", 8, \"August\", 123962.44},",
+                "            {\"Hiking\", 9, \"September\", 95123.02},",
+                "            {\"Hiking\", 10, \"October\", 83682.24},",
+                "            {\"Hiking\", 11, \"November\", 91695.04},",
+                "            {\"Hiking\", 12, \"December\", 110029.85}",
+                "        }",
+                "    )",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ]
+      },
+      {
+        "name": "StoreGeography",
+        "columns": [
+          {
+            "name": "StoreID",
+            "dataType": "int64",
+            "sourceColumn": "StoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "StoreName",
+            "dataType": "string",
+            "sourceColumn": "StoreName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "City",
+            "dataType": "string",
+            "sourceColumn": "City",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "City"
+          },
+          {
+            "name": "State",
+            "dataType": "string",
+            "sourceColumn": "State",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "StateOrProvince"
+          },
+          {
+            "name": "RegionName",
+            "dataType": "string",
+            "sourceColumn": "RegionName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Latitude",
+            "dataType": "double",
+            "sourceColumn": "Latitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Latitude"
+          },
+          {
+            "name": "Longitude",
+            "dataType": "double",
+            "sourceColumn": "Longitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Longitude"
+          },
+          {
+            "name": "WellKnownText",
+            "dataType": "string",
+            "sourceColumn": "WellKnownText",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CustomersWithin25km",
+            "dataType": "int64",
+            "sourceColumn": "CustomersWithin25km",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          },
+          {
+            "name": "CustomersWithin50km",
+            "dataType": "int64",
+            "sourceColumn": "CustomersWithin50km",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          },
+          {
+            "name": "CustomersWithin100km",
+            "dataType": "int64",
+            "sourceColumn": "CustomersWithin100km",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "StoreGeography-partition",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = #table(",
+                "        type table [StoreID = Int64.Type, StoreName = text, City = text, State = text, RegionName = text, Latitude = number, Longitude = number, WellKnownText = text, CustomersWithin25km = Int64.Type, CustomersWithin50km = Int64.Type, CustomersWithin100km = Int64.Type],",
+                "        {",
+                "            {1, \"Contoso Bellevue\", \"Bellevue\", \"WA\", \"West\", 47.6104, -122.2007, \"POINT (-122.2007 47.6104)\", 15, 52, 60},",
+                "            {2, \"Contoso Portland\", \"Portland\", \"OR\", \"West\", 45.5152, -122.6784, \"POINT (-122.6784 45.5152)\", 15, 51, 60},",
+                "            {3, \"Contoso Denver\", \"Denver\", \"CO\", \"North\", 39.7392, -104.9903, \"POINT (-104.9903 39.7392)\", 12, 49, 60},",
+                "            {4, \"Contoso Minneapolis\", \"Minneapolis\", \"MN\", \"North\", 44.9778, -93.265, \"POINT (-93.265 44.9778)\", 15, 51, 60},",
+                "            {5, \"Contoso Austin\", \"Austin\", \"TX\", \"South\", 30.2672, -97.7431, \"POINT (-97.7431 30.2672)\", 11, 44, 60},",
+                "            {6, \"Contoso Atlanta\", \"Atlanta\", \"GA\", \"South\", 33.749, -84.388, \"POINT (-84.388 33.749)\", 11, 47, 60},",
+                "            {7, \"Contoso Boston\", \"Boston\", \"MA\", \"East\", 42.3601, -71.0589, \"POINT (-71.0589 42.3601)\", 13, 49, 60},",
+                "            {8, \"Contoso Philadelphia\", \"Philadelphia\", \"PA\", \"East\", 39.9526, -75.1652, \"POINT (-75.1652 39.9526)\", 12, 49, 60}",
+                "        }",
+                "    )",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Store Count",
+            "expression": "DISTINCTCOUNT ( StoreGeography[StoreID] )",
+            "formatString": "#,0"
+          }
+        ]
+      },
+      {
+        "name": "CustomerGeography",
+        "columns": [
+          {
+            "name": "CustomerID",
+            "dataType": "string",
+            "sourceColumn": "CustomerID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "HomeStoreID",
+            "dataType": "int64",
+            "sourceColumn": "HomeStoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "StoreName",
+            "dataType": "string",
+            "sourceColumn": "StoreName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RegionName",
+            "dataType": "string",
+            "sourceColumn": "RegionName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LoyaltyTier",
+            "dataType": "string",
+            "sourceColumn": "LoyaltyTier",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Latitude",
+            "dataType": "double",
+            "sourceColumn": "Latitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.00000",
+            "dataCategory": "Latitude"
+          },
+          {
+            "name": "Longitude",
+            "dataType": "double",
+            "sourceColumn": "Longitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.00000",
+            "dataCategory": "Longitude"
+          },
+          {
+            "name": "DistanceKm",
+            "dataType": "double",
+            "sourceColumn": "DistanceKm",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CustomerGeography-partition",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = #table(",
+                "        type table [CustomerID = text, HomeStoreID = Int64.Type, StoreName = text, RegionName = text, LoyaltyTier = text, Latitude = number, Longitude = number, DistanceKm = number],",
+                "        {",
+                "            {\"C1001\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.5304, -122.2207, 9.02},",
+                "            {\"C1002\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.9004, -121.6907, 50.02},",
+                "            {\"C1003\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.3604, -122.2707, 28.29},",
+                "            {\"C1004\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.7304, -121.7407, 37.03},",
+                "            {\"C1005\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.1904, -122.3207, 47.57},",
+                "            {\"C1006\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.5604, -121.7907, 31.34},",
+                "            {\"C1007\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.9304, -122.3707, 37.79},",
+                "            {\"C1008\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.3904, -121.8407, 36.52},",
+                "            {\"C1009\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.7604, -122.4207, 23.47},",
+                "            {\"C1010\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.2204, -121.8907, 49.27},",
+                "            {\"C1011\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.5904, -122.4707, 20.43},",
+                "            {\"C1012\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.9604, -121.9407, 43.52},",
+                "            {\"C1013\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.4204, -122.5207, 32.05},",
+                "            {\"C1014\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.7904, -121.9907, 25.47},",
+                "            {\"C1015\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.2504, -122.5707, 48.8},",
+                "            {\"C1016\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.6204, -122.0407, 12.08},",
+                "            {\"C1017\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.9904, -122.6207, 52.68},",
+                "            {\"C1018\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.4504, -122.0907, 19.62},",
+                "            {\"C1019\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.8204, -122.6707, 42.3},",
+                "            {\"C1020\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.2804, -122.1407, 36.97},",
+                "            {\"C1021\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.6504, -122.7207, 39.33},",
+                "            {\"C1022\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 48.0204, -122.1907, 45.59},",
+                "            {\"C1023\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.4804, -121.6607, 43.14},",
+                "            {\"C1024\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.8504, -122.2407, 26.85},",
+                "            {\"C1025\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.3104, -121.7107, 49.77},",
+                "            {\"C1026\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.6804, -122.2907, 10.31},",
+                "            {\"C1027\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 48.0504, -121.7607, 58.98},",
+                "            {\"C1028\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.5104, -122.3407, 15.32},",
+                "            {\"C1029\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.8804, -121.8107, 41.91},",
+                "            {\"C1030\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.3404, -122.3907, 33.26},",
+                "            {\"C1031\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.7104, -121.8607, 27.85},",
+                "            {\"C1032\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.1704, -122.4407, 52.17},",
+                "            {\"C1033\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.5404, -121.9107, 23.16},",
+                "            {\"C1034\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.9104, -122.4907, 39.82},",
+                "            {\"C1035\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.3704, -121.9607, 32.23},",
+                "            {\"C1036\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.7404, -122.5407, 29.34},",
+                "            {\"C1037\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.2004, -122.0107, 47.79},",
+                "            {\"C1038\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.5704, -122.5907, 29.67},",
+                "            {\"C1039\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.9404, -122.0607, 38.16},",
+                "            {\"C1040\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.4004, -122.6407, 40.54},",
+                "            {\"C1041\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.7704, -122.1107, 19.03},",
+                "            {\"C1042\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.2304, -122.6907, 56.14},",
+                "            {\"C1043\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.6004, -122.1607, 3.21},",
+                "            {\"C1044\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.9704, -122.7407, 56.91},",
+                "            {\"C1045\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.4304, -122.2107, 20.03},",
+                "            {\"C1046\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.8004, -121.6807, 44.38},",
+                "            {\"C1047\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.2604, -122.2607, 39.18},",
+                "            {\"C1048\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.6304, -121.7307, 35.4},",
+                "            {\"C1049\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 48.0004, -122.3107, 44.14},",
+                "            {\"C1050\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.4604, -121.7807, 35.75},",
+                "            {\"C1051\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.8304, -122.3607, 27.25},",
+                "            {\"C1052\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.2904, -121.8307, 45.21},",
+                "            {\"C1053\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.6604, -122.4107, 16.73},",
+                "            {\"C1054\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 48.0304, -121.8807, 52.49},",
+                "            {\"C1055\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 47.4904, -122.4607, 23.69},",
+                "            {\"C1056\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.8604, -121.9307, 34.39},",
+                "            {\"C1057\", 1, \"Contoso Bellevue\", \"West\", \"Platinum\", 47.3204, -122.5107, 39.82},",
+                "            {\"C1058\", 1, \"Contoso Bellevue\", \"West\", \"Gold\", 47.6904, -121.9807, 18.77},",
+                "            {\"C1059\", 1, \"Contoso Bellevue\", \"West\", \"Silver\", 48.0604, -122.5607, 56.83},",
+                "            {\"C1060\", 1, \"Contoso Bellevue\", \"West\", \"None\", 47.5204, -122.0307, 16.24},",
+                "            {\"C1061\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.4352, -122.6984, 9.03},",
+                "            {\"C1062\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.8052, -122.1684, 51.17},",
+                "            {\"C1063\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.2652, -122.7484, 28.32},",
+                "            {\"C1064\", 2, \"Contoso Portland\", \"West\", \"None\", 45.6352, -122.2184, 38.3},",
+                "            {\"C1065\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.0952, -122.7984, 47.62},",
+                "            {\"C1066\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.4652, -122.2684, 32.53},",
+                "            {\"C1067\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.8352, -122.8484, 37.95},",
+                "            {\"C1068\", 2, \"Contoso Portland\", \"West\", \"None\", 45.2952, -122.3184, 37.31},",
+                "            {\"C1069\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.6652, -122.8984, 23.93},",
+                "            {\"C1070\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.1252, -122.3684, 49.69},",
+                "            {\"C1071\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.4952, -122.9484, 21.22},",
+                "            {\"C1072\", 2, \"Contoso Portland\", \"West\", \"None\", 45.8652, -122.4184, 43.86},",
+                "            {\"C1073\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.3252, -122.9984, 32.76},",
+                "            {\"C1074\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.6952, -122.4684, 25.86},",
+                "            {\"C1075\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.1552, -123.0484, 49.42},",
+                "            {\"C1076\", 2, \"Contoso Portland\", \"West\", \"None\", 45.5252, -122.5184, 12.55},",
+                "            {\"C1077\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.8952, -123.0984, 53.42},",
+                "            {\"C1078\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.3552, -122.5684, 19.76},",
+                "            {\"C1079\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.7252, -123.1484, 43.46},",
+                "            {\"C1080\", 2, \"Contoso Portland\", \"West\", \"None\", 45.1852, -122.6184, 36.98},",
+                "            {\"C1081\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.5552, -123.1984, 40.86},",
+                "            {\"C1082\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.9252, -122.6684, 45.58},",
+                "            {\"C1083\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.3852, -122.1384, 44.64},",
+                "            {\"C1084\", 2, \"Contoso Portland\", \"West\", \"None\", 45.7552, -122.7184, 26.86},",
+                "            {\"C1085\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.2152, -122.1884, 50.85},",
+                "            {\"C1086\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.5852, -122.7684, 10.48},",
+                "            {\"C1087\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.9552, -122.2384, 59.7},",
+                "            {\"C1088\", 2, \"Contoso Portland\", \"West\", \"None\", 45.4152, -122.8184, 15.6},",
+                "            {\"C1089\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.7852, -122.2884, 42.72},",
+                "            {\"C1090\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.2452, -122.8684, 33.49},",
+                "            {\"C1091\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.6152, -122.3384, 28.78},",
+                "            {\"C1092\", 2, \"Contoso Portland\", \"West\", \"None\", 45.0752, -122.9184, 52.4},",
+                "            {\"C1093\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.4452, -122.3884, 23.97},",
+                "            {\"C1094\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.8152, -122.9684, 40.28},",
+                "            {\"C1095\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.2752, -122.4384, 32.63},",
+                "            {\"C1096\", 2, \"Contoso Portland\", \"West\", \"None\", 45.6452, -123.0184, 30.21},",
+                "            {\"C1097\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.1052, -122.4884, 47.94},",
+                "            {\"C1098\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.4752, -123.0684, 30.81},",
+                "            {\"C1099\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.8452, -122.5384, 38.27},",
+                "            {\"C1100\", 2, \"Contoso Portland\", \"West\", \"None\", 45.3052, -123.1184, 41.61},",
+                "            {\"C1101\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.6752, -122.5884, 19.12},",
+                "            {\"C1102\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.1352, -123.1684, 57.09},",
+                "            {\"C1103\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.5052, -122.6384, 3.32},",
+                "            {\"C1104\", 2, \"Contoso Portland\", \"West\", \"None\", 45.8752, -123.2184, 58.05},",
+                "            {\"C1105\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.3352, -122.6884, 20.02},",
+                "            {\"C1106\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.7052, -122.1584, 45.73},",
+                "            {\"C1107\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.1652, -122.7384, 39.18},",
+                "            {\"C1108\", 2, \"Contoso Portland\", \"West\", \"None\", 45.5352, -122.2084, 36.79},",
+                "            {\"C1109\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.9052, -122.7884, 44.18},",
+                "            {\"C1110\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.3652, -122.2584, 36.85},",
+                "            {\"C1111\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.7352, -122.8384, 27.45},",
+                "            {\"C1112\", 2, \"Contoso Portland\", \"West\", \"None\", 45.1952, -122.3084, 45.88},",
+                "            {\"C1113\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.5652, -122.8884, 17.32},",
+                "            {\"C1114\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.9352, -122.3584, 52.91},",
+                "            {\"C1115\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.3952, -122.9384, 24.32},",
+                "            {\"C1116\", 2, \"Contoso Portland\", \"West\", \"None\", 45.7652, -122.4084, 34.86},",
+                "            {\"C1117\", 2, \"Contoso Portland\", \"West\", \"Platinum\", 45.2252, -122.9884, 40.36},",
+                "            {\"C1118\", 2, \"Contoso Portland\", \"West\", \"Gold\", 45.5952, -122.4584, 19.34},",
+                "            {\"C1119\", 2, \"Contoso Portland\", \"West\", \"Silver\", 45.9652, -123.0384, 57.33},",
+                "            {\"C1120\", 2, \"Contoso Portland\", \"West\", \"None\", 45.4252, -122.5084, 16.64},",
+                "            {\"C1121\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.6592, -105.0103, 9.05},",
+                "            {\"C1122\", 3, \"Contoso Denver\", \"North\", \"Gold\", 40.0292, -104.4803, 54.22},",
+                "            {\"C1123\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.4892, -105.0603, 28.4},",
+                "            {\"C1124\", 3, \"Contoso Denver\", \"North\", \"None\", 39.8592, -104.5303, 41.59},",
+                "            {\"C1125\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.3192, -105.1103, 47.76},",
+                "            {\"C1126\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.6892, -104.5803, 35.59},",
+                "            {\"C1127\", 3, \"Contoso Denver\", \"North\", \"Silver\", 40.0592, -105.1603, 38.39},",
+                "            {\"C1128\", 3, \"Contoso Denver\", \"North\", \"None\", 39.5192, -104.6303, 39.39},",
+                "            {\"C1129\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.8892, -105.2103, 25.14},",
+                "            {\"C1130\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.3492, -104.6803, 50.84},",
+                "            {\"C1131\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.7192, -105.2603, 23.25},",
+                "            {\"C1132\", 3, \"Contoso Denver\", \"North\", \"None\", 40.0892, -104.7303, 44.77},",
+                "            {\"C1133\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.5492, -105.3103, 34.63},",
+                "            {\"C1134\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.9192, -104.7803, 26.88},",
+                "            {\"C1135\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.3792, -105.3603, 51.07},",
+                "            {\"C1136\", 3, \"Contoso Denver\", \"North\", \"None\", 39.7492, -104.8303, 13.76},",
+                "            {\"C1137\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 40.1192, -105.4103, 55.4},",
+                "            {\"C1138\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.5792, -104.8803, 20.12},",
+                "            {\"C1139\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.9492, -105.4603, 46.5},",
+                "            {\"C1140\", 3, \"Contoso Denver\", \"North\", \"None\", 39.4092, -104.9303, 37.0},",
+                "            {\"C1141\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.7792, -105.5103, 44.78},",
+                "            {\"C1142\", 3, \"Contoso Denver\", \"North\", \"Gold\", 40.1492, -104.9803, 45.53},",
+                "            {\"C1143\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.6092, -104.4503, 48.53},",
+                "            {\"C1144\", 3, \"Contoso Denver\", \"North\", \"None\", 39.9792, -105.0303, 26.87},",
+                "            {\"C1145\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.4392, -104.5003, 53.68},",
+                "            {\"C1146\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.8092, -105.0803, 10.95},",
+                "            {\"C1147\", 3, \"Contoso Denver\", \"North\", \"Silver\", 40.1792, -104.5503, 61.65},",
+                "            {\"C1148\", 3, \"Contoso Denver\", \"North\", \"None\", 39.6392, -105.1303, 16.36},",
+                "            {\"C1149\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 40.0092, -104.6003, 44.85},",
+                "            {\"C1150\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.4692, -105.1803, 34.13},",
+                "            {\"C1151\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.8392, -104.6503, 31.17},",
+                "            {\"C1152\", 3, \"Contoso Denver\", \"North\", \"None\", 39.2992, -105.2303, 53.03},",
+                "            {\"C1153\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.6692, -104.7003, 26.06},",
+                "            {\"C1154\", 3, \"Contoso Denver\", \"North\", \"Gold\", 40.0392, -105.2803, 41.53},",
+                "            {\"C1155\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.4992, -104.7503, 33.69},",
+                "            {\"C1156\", 3, \"Contoso Denver\", \"North\", \"None\", 39.8692, -105.3303, 32.5},",
+                "            {\"C1157\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.3292, -104.8003, 48.36},",
+                "            {\"C1158\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.6992, -105.3803, 33.73},",
+                "            {\"C1159\", 3, \"Contoso Denver\", \"North\", \"Silver\", 40.0692, -104.8503, 38.55},",
+                "            {\"C1160\", 3, \"Contoso Denver\", \"North\", \"None\", 39.5292, -105.4303, 44.39},",
+                "            {\"C1161\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.8992, -104.9003, 19.36},",
+                "            {\"C1162\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.3592, -105.4803, 59.61},",
+                "            {\"C1163\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.7292, -104.9503, 3.6},",
+                "            {\"C1164\", 3, \"Contoso Denver\", \"North\", \"None\", 40.0992, -105.5303, 61.07},",
+                "            {\"C1165\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.5592, -105.0003, 20.0},",
+                "            {\"C1166\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.9292, -104.4703, 49.26},",
+                "            {\"C1167\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.3892, -105.0503, 39.2},",
+                "            {\"C1168\", 3, \"Contoso Denver\", \"North\", \"None\", 39.7592, -104.5203, 40.34},",
+                "            {\"C1169\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 40.1292, -105.1003, 44.31},",
+                "            {\"C1170\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.5892, -104.5703, 39.7},",
+                "            {\"C1171\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.9592, -105.1503, 28.0},",
+                "            {\"C1172\", 3, \"Contoso Denver\", \"North\", \"None\", 39.4192, -104.6203, 47.67},",
+                "            {\"C1173\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.7892, -105.2003, 18.83},",
+                "            {\"C1174\", 3, \"Contoso Denver\", \"North\", \"Gold\", 40.1592, -104.6703, 54.06},",
+                "            {\"C1175\", 3, \"Contoso Denver\", \"North\", \"Silver\", 39.6192, -105.2503, 25.98},",
+                "            {\"C1176\", 3, \"Contoso Denver\", \"North\", \"None\", 39.9892, -104.7203, 36.11},",
+                "            {\"C1177\", 3, \"Contoso Denver\", \"North\", \"Platinum\", 39.4492, -105.3003, 41.78},",
+                "            {\"C1178\", 3, \"Contoso Denver\", \"North\", \"Gold\", 39.8192, -104.7703, 20.84},",
+                "            {\"C1179\", 3, \"Contoso Denver\", \"North\", \"Silver\", 40.1892, -105.3503, 58.67},",
+                "            {\"C1180\", 3, \"Contoso Denver\", \"North\", \"None\", 39.6492, -104.8203, 17.68},",
+                "            {\"C1181\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.8978, -93.285, 9.03},",
+                "            {\"C1182\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.2678, -92.755, 51.47},",
+                "            {\"C1183\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.7278, -93.335, 28.33},",
+                "            {\"C1184\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 45.0978, -92.805, 38.62},",
+                "            {\"C1185\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.5578, -93.385, 47.63},",
+                "            {\"C1186\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 44.9278, -92.855, 32.83},",
+                "            {\"C1187\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 45.2978, -93.435, 37.99},",
+                "            {\"C1188\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.7578, -92.905, 37.51},",
+                "            {\"C1189\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 45.1278, -93.485, 24.05},",
+                "            {\"C1190\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 44.5878, -92.955, 49.8},",
+                "            {\"C1191\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.9578, -93.535, 21.42},",
+                "            {\"C1192\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 45.3278, -93.005, 43.94},",
+                "            {\"C1193\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.7878, -93.585, 32.94},",
+                "            {\"C1194\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.1578, -93.055, 25.96},",
+                "            {\"C1195\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.6178, -93.635, 49.57},",
+                "            {\"C1196\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.9878, -93.105, 12.67},",
+                "            {\"C1197\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 45.3578, -93.685, 53.61},",
+                "            {\"C1198\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 44.8178, -93.155, 19.79},",
+                "            {\"C1199\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 45.1878, -93.735, 43.75},",
+                "            {\"C1200\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.6478, -93.205, 36.98},",
+                "            {\"C1201\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 45.0178, -93.785, 41.24},",
+                "            {\"C1202\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.3878, -93.255, 45.57},",
+                "            {\"C1203\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.8478, -92.725, 45.02},",
+                "            {\"C1204\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 45.2178, -93.305, 26.86},",
+                "            {\"C1205\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.6778, -92.775, 51.12},",
+                "            {\"C1206\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.0478, -93.355, 10.53},",
+                "            {\"C1207\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 45.4178, -92.825, 59.89},",
+                "            {\"C1208\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.8778, -93.405, 15.67},",
+                "            {\"C1209\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 45.2478, -92.875, 42.92},",
+                "            {\"C1210\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 44.7078, -93.455, 33.55},",
+                "            {\"C1211\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 45.0778, -92.925, 29.01},",
+                "            {\"C1212\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.5378, -93.505, 52.46},",
+                "            {\"C1213\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.9078, -92.975, 24.17},",
+                "            {\"C1214\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.2778, -93.555, 40.4},",
+                "            {\"C1215\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.7378, -93.025, 32.73},",
+                "            {\"C1216\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 45.1078, -93.605, 30.44},",
+                "            {\"C1217\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.5678, -93.075, 47.98},",
+                "            {\"C1218\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 44.9378, -93.655, 31.09},",
+                "            {\"C1219\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 45.3078, -93.125, 38.29},",
+                "            {\"C1220\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.7678, -93.705, 41.88},",
+                "            {\"C1221\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 45.1378, -93.175, 19.14},",
+                "            {\"C1222\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 44.5978, -93.755, 57.33},",
+                "            {\"C1223\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.9678, -93.225, 3.35},",
+                "            {\"C1224\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 45.3378, -93.805, 58.34},",
+                "            {\"C1225\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.7978, -93.275, 20.02},",
+                "            {\"C1226\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.1678, -92.745, 46.07},",
+                "            {\"C1227\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.6278, -93.325, 39.18},",
+                "            {\"C1228\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.9978, -92.795, 37.13},",
+                "            {\"C1229\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 45.3678, -93.375, 44.2},",
+                "            {\"C1230\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 44.8278, -92.845, 37.12},",
+                "            {\"C1231\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 45.1978, -93.425, 27.5},",
+                "            {\"C1232\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.6578, -92.895, 46.05},",
+                "            {\"C1233\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 45.0278, -93.475, 17.46},",
+                "            {\"C1234\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.3978, -92.945, 53.02},",
+                "            {\"C1235\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 44.8578, -93.525, 24.48},",
+                "            {\"C1236\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 45.2278, -92.995, 34.98},",
+                "            {\"C1237\", 4, \"Contoso Minneapolis\", \"North\", \"Platinum\", 44.6878, -93.575, 40.49},",
+                "            {\"C1238\", 4, \"Contoso Minneapolis\", \"North\", \"Gold\", 45.0578, -93.045, 19.49},",
+                "            {\"C1239\", 4, \"Contoso Minneapolis\", \"North\", \"Silver\", 45.4278, -93.625, 57.46},",
+                "            {\"C1240\", 4, \"Contoso Minneapolis\", \"North\", \"None\", 44.8878, -93.095, 16.74},",
+                "            {\"C1241\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.1872, -97.7631, 9.08},",
+                "            {\"C1242\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.5572, -97.2331, 58.61},",
+                "            {\"C1243\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.0172, -97.8131, 28.52},",
+                "            {\"C1244\", 5, \"Contoso Austin\", \"South\", \"None\", 30.3872, -97.2831, 46.19},",
+                "            {\"C1245\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 29.8472, -97.8631, 47.97},",
+                "            {\"C1246\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.2172, -97.3331, 39.85},",
+                "            {\"C1247\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.5872, -97.9131, 39.05},",
+                "            {\"C1248\", 5, \"Contoso Austin\", \"South\", \"None\", 30.0472, -97.3831, 42.4},",
+                "            {\"C1249\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.4172, -97.9631, 26.91},",
+                "            {\"C1250\", 5, \"Contoso Austin\", \"South\", \"Gold\", 29.8772, -97.4331, 52.56},",
+                "            {\"C1251\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.2472, -98.0131, 26.08},",
+                "            {\"C1252\", 5, \"Contoso Austin\", \"South\", \"None\", 30.6172, -97.4831, 46.14},",
+                "            {\"C1253\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.0772, -98.0631, 37.33},",
+                "            {\"C1254\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.4472, -97.5331, 28.39},",
+                "            {\"C1255\", 5, \"Contoso Austin\", \"South\", \"Silver\", 29.9072, -98.1131, 53.52},",
+                "            {\"C1256\", 5, \"Contoso Austin\", \"South\", \"None\", 30.2772, -97.5831, 15.44},",
+                "            {\"C1257\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.6472, -98.1631, 58.32},",
+                "            {\"C1258\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.1072, -97.6331, 20.66},",
+                "            {\"C1259\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.4772, -98.2131, 50.82},",
+                "            {\"C1260\", 5, \"Contoso Austin\", \"South\", \"None\", 29.9372, -97.6831, 37.04},",
+                "            {\"C1261\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.3072, -98.2631, 50.22},",
+                "            {\"C1262\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.6772, -97.7331, 45.46},",
+                "            {\"C1263\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.1372, -97.2031, 53.96},",
+                "            {\"C1264\", 5, \"Contoso Austin\", \"South\", \"None\", 30.5072, -97.7831, 26.88},",
+                "            {\"C1265\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 29.9672, -97.2531, 57.76},",
+                "            {\"C1266\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.3372, -97.8331, 11.63},",
+                "            {\"C1267\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.7072, -97.3031, 64.53},",
+                "            {\"C1268\", 5, \"Contoso Austin\", \"South\", \"None\", 30.1672, -97.8831, 17.45},",
+                "            {\"C1269\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.5372, -97.3531, 47.96},",
+                "            {\"C1270\", 5, \"Contoso Austin\", \"South\", \"Gold\", 29.9972, -97.9331, 35.09},",
+                "            {\"C1271\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.3672, -97.4031, 34.53},",
+                "            {\"C1272\", 5, \"Contoso Austin\", \"South\", \"None\", 29.8272, -97.9831, 53.99},",
+                "            {\"C1273\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.1972, -97.4531, 28.97},",
+                "            {\"C1274\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.5672, -98.0331, 43.39},",
+                "            {\"C1275\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.0272, -97.5031, 35.25},",
+                "            {\"C1276\", 5, \"Contoso Austin\", \"South\", \"None\", 30.3972, -98.0831, 35.73},",
+                "            {\"C1277\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 29.8572, -97.5531, 49.0},",
+                "            {\"C1278\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.2272, -98.1331, 37.8},",
+                "            {\"C1279\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.5972, -97.6031, 38.98},",
+                "            {\"C1280\", 5, \"Contoso Austin\", \"South\", \"None\", 30.0572, -98.1831, 48.36},",
+                "            {\"C1281\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.4272, -97.6531, 19.74},",
+                "            {\"C1282\", 5, \"Contoso Austin\", \"South\", \"Gold\", 29.8872, -98.2331, 63.29},",
+                "            {\"C1283\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.2572, -97.7031, 4.01},",
+                "            {\"C1284\", 5, \"Contoso Austin\", \"South\", \"None\", 30.6272, -98.2831, 65.44},",
+                "            {\"C1285\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.0872, -97.7531, 19.98},",
+                "            {\"C1286\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.4572, -97.2231, 54.25},",
+                "            {\"C1287\", 5, \"Contoso Austin\", \"South\", \"Silver\", 29.9172, -97.8031, 39.23},",
+                "            {\"C1288\", 5, \"Contoso Austin\", \"South\", \"None\", 30.2872, -97.2731, 45.28},",
+                "            {\"C1289\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.6572, -97.8531, 44.51},",
+                "            {\"C1290\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.1172, -97.3231, 43.73},",
+                "            {\"C1291\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.4872, -97.9031, 28.83},",
+                "            {\"C1292\", 5, \"Contoso Austin\", \"South\", \"None\", 29.9472, -97.3731, 50.3},",
+                "            {\"C1293\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 30.3172, -97.9531, 20.95},",
+                "            {\"C1294\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.6872, -97.4231, 55.79},",
+                "            {\"C1295\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.1472, -98.0031, 28.35},",
+                "            {\"C1296\", 5, \"Contoso Austin\", \"South\", \"None\", 30.5172, -97.4731, 37.97},",
+                "            {\"C1297\", 5, \"Contoso Austin\", \"South\", \"Platinum\", 29.9772, -98.0531, 43.89},",
+                "            {\"C1298\", 5, \"Contoso Austin\", \"South\", \"Gold\", 30.3472, -97.5231, 22.94},",
+                "            {\"C1299\", 5, \"Contoso Austin\", \"South\", \"Silver\", 30.7172, -98.1031, 60.69},",
+                "            {\"C1300\", 5, \"Contoso Austin\", \"South\", \"None\", 30.1772, -97.5731, 19.17},",
+                "            {\"C1301\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.669, -84.408, 9.06},",
+                "            {\"C1302\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 34.039, -83.878, 57.1},",
+                "            {\"C1303\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.499, -84.458, 28.48},",
+                "            {\"C1304\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.869, -83.928, 44.62},",
+                "            {\"C1305\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.329, -84.508, 47.9},",
+                "            {\"C1306\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.699, -83.978, 38.4},",
+                "            {\"C1307\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 34.069, -84.558, 38.82},",
+                "            {\"C1308\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.529, -84.028, 41.36},",
+                "            {\"C1309\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.899, -84.608, 26.3},",
+                "            {\"C1310\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.359, -84.078, 51.96},",
+                "            {\"C1311\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.729, -84.658, 25.12},",
+                "            {\"C1312\", 6, \"Contoso Atlanta\", \"South\", \"None\", 34.099, -84.128, 45.66},",
+                "            {\"C1313\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.559, -84.708, 36.4},",
+                "            {\"C1314\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.929, -84.178, 27.86},",
+                "            {\"C1315\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.389, -84.758, 52.67},",
+                "            {\"C1316\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.759, -84.228, 14.87},",
+                "            {\"C1317\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 34.129, -84.808, 57.31},",
+                "            {\"C1318\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.589, -84.278, 20.47},",
+                "            {\"C1319\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.959, -84.858, 49.34},",
+                "            {\"C1320\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.419, -84.328, 37.02},",
+                "            {\"C1321\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.789, -84.908, 48.37},",
+                "            {\"C1322\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 34.159, -84.378, 45.49},",
+                "            {\"C1323\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.619, -83.848, 52.11},",
+                "            {\"C1324\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.989, -84.428, 26.88},",
+                "            {\"C1325\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.449, -83.898, 56.35},",
+                "            {\"C1326\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.819, -84.478, 11.39},",
+                "            {\"C1327\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 34.189, -83.948, 63.53},",
+                "            {\"C1328\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.649, -84.528, 17.07},",
+                "            {\"C1329\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 34.019, -83.998, 46.89},",
+                "            {\"C1330\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.479, -84.578, 34.75},",
+                "            {\"C1331\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.849, -84.048, 33.38},",
+                "            {\"C1332\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.309, -84.628, 53.65},",
+                "            {\"C1333\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.679, -84.098, 27.98},",
+                "            {\"C1334\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 34.049, -84.678, 42.74},",
+                "            {\"C1335\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.509, -84.148, 34.71},",
+                "            {\"C1336\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.879, -84.728, 34.62},",
+                "            {\"C1337\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.339, -84.198, 48.78},",
+                "            {\"C1338\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.709, -84.778, 36.42},",
+                "            {\"C1339\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 34.079, -84.248, 38.83},",
+                "            {\"C1340\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.539, -84.828, 47.0},",
+                "            {\"C1341\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.909, -84.298, 19.61},",
+                "            {\"C1342\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.369, -84.878, 62.02},",
+                "            {\"C1343\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.739, -84.348, 3.87},",
+                "            {\"C1344\", 6, \"Contoso Atlanta\", \"South\", \"None\", 34.109, -84.928, 63.93},",
+                "            {\"C1345\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.569, -84.398, 19.99},",
+                "            {\"C1346\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.939, -83.868, 52.54},",
+                "            {\"C1347\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.399, -84.448, 39.22},",
+                "            {\"C1348\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.769, -83.918, 43.6},",
+                "            {\"C1349\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 34.139, -84.498, 44.44},",
+                "            {\"C1350\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.599, -83.968, 42.35},",
+                "            {\"C1351\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.969, -84.548, 28.54},",
+                "            {\"C1352\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.429, -84.018, 49.39},",
+                "            {\"C1353\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.799, -84.598, 20.23},",
+                "            {\"C1354\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 34.169, -84.068, 55.18},",
+                "            {\"C1355\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 33.629, -84.648, 27.54},",
+                "            {\"C1356\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.999, -84.118, 37.32},",
+                "            {\"C1357\", 6, \"Contoso Atlanta\", \"South\", \"Platinum\", 33.459, -84.698, 43.16},",
+                "            {\"C1358\", 6, \"Contoso Atlanta\", \"South\", \"Gold\", 33.829, -84.168, 22.22},",
+                "            {\"C1359\", 6, \"Contoso Atlanta\", \"South\", \"Silver\", 34.199, -84.748, 59.99},",
+                "            {\"C1360\", 6, \"Contoso Atlanta\", \"South\", \"None\", 33.659, -84.218, 18.66},",
+                "            {\"C1361\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.2801, -71.0789, 9.04},",
+                "            {\"C1362\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.6501, -70.5489, 52.87},",
+                "            {\"C1363\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.1101, -71.1289, 28.36},",
+                "            {\"C1364\", 7, \"Contoso Boston\", \"East\", \"None\", 42.4801, -70.5989, 40.14},",
+                "            {\"C1365\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 41.9401, -71.1789, 47.69},",
+                "            {\"C1366\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.3101, -70.6489, 34.24},",
+                "            {\"C1367\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.6801, -71.2289, 38.19},",
+                "            {\"C1368\", 7, \"Contoso Boston\", \"East\", \"None\", 42.1401, -70.6989, 38.47},",
+                "            {\"C1369\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.5101, -71.2789, 24.6},",
+                "            {\"C1370\", 7, \"Contoso Boston\", \"East\", \"Gold\", 41.9701, -70.7489, 50.33},",
+                "            {\"C1371\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.3401, -71.3289, 22.36},",
+                "            {\"C1372\", 7, \"Contoso Boston\", \"East\", \"None\", 42.7101, -70.7989, 44.36},",
+                "            {\"C1373\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.1701, -71.3789, 33.8},",
+                "            {\"C1374\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.5401, -70.8489, 26.42},",
+                "            {\"C1375\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.0001, -71.4289, 50.33},",
+                "            {\"C1376\", 7, \"Contoso Boston\", \"East\", \"None\", 42.3701, -70.8989, 13.23},",
+                "            {\"C1377\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.7401, -71.4789, 54.51},",
+                "            {\"C1378\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.2001, -70.9489, 19.95},",
+                "            {\"C1379\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.5701, -71.5289, 45.15},",
+                "            {\"C1380\", 7, \"Contoso Boston\", \"East\", \"None\", 42.0301, -70.9989, 36.99},",
+                "            {\"C1381\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.4001, -71.5789, 43.05},",
+                "            {\"C1382\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.7701, -71.0489, 45.55},",
+                "            {\"C1383\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.2301, -70.5189, 46.81},",
+                "            {\"C1384\", 7, \"Contoso Boston\", \"East\", \"None\", 42.6001, -71.0989, 26.86},",
+                "            {\"C1385\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.0601, -70.5689, 52.42},",
+                "            {\"C1386\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.4301, -71.1489, 10.74},",
+                "            {\"C1387\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.8001, -70.6189, 60.78},",
+                "            {\"C1388\", 7, \"Contoso Boston\", \"East\", \"None\", 42.2601, -71.1989, 16.02},",
+                "            {\"C1389\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.6301, -70.6689, 43.9},",
+                "            {\"C1390\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.0901, -71.2489, 33.85},",
+                "            {\"C1391\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.4601, -70.7189, 30.11},",
+                "            {\"C1392\", 7, \"Contoso Boston\", \"East\", \"None\", 41.9201, -71.2989, 52.75},",
+                "            {\"C1393\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.2901, -70.7689, 25.14},",
+                "            {\"C1394\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.6601, -71.3489, 40.97},",
+                "            {\"C1395\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.1201, -70.8189, 33.21},",
+                "            {\"C1396\", 7, \"Contoso Boston\", \"East\", \"None\", 42.4901, -71.3989, 31.49},",
+                "            {\"C1397\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 41.9501, -70.8689, 48.17},",
+                "            {\"C1398\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.3201, -71.4489, 32.44},",
+                "            {\"C1399\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.6901, -70.9189, 38.42},",
+                "            {\"C1400\", 7, \"Contoso Boston\", \"East\", \"None\", 42.1501, -71.4989, 43.16},",
+                "            {\"C1401\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.5201, -70.9689, 19.25},",
+                "            {\"C1402\", 7, \"Contoso Boston\", \"East\", \"Gold\", 41.9801, -71.5489, 58.49},",
+                "            {\"C1403\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.3501, -71.0189, 3.48},",
+                "            {\"C1404\", 7, \"Contoso Boston\", \"East\", \"None\", 42.7201, -71.5989, 59.72},",
+                "            {\"C1405\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.1801, -71.0689, 20.01},",
+                "            {\"C1406\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.5501, -70.5389, 47.7},",
+                "            {\"C1407\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.0101, -71.1189, 39.19},",
+                "            {\"C1408\", 7, \"Contoso Boston\", \"East\", \"None\", 42.3801, -70.5889, 38.78},",
+                "            {\"C1409\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.7501, -71.1689, 44.25},",
+                "            {\"C1410\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.2101, -70.6389, 38.44},",
+                "            {\"C1411\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.5801, -71.2189, 27.76},",
+                "            {\"C1412\", 7, \"Contoso Boston\", \"East\", \"None\", 42.0401, -70.6889, 46.87},",
+                "            {\"C1413\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.4101, -71.2689, 18.16},",
+                "            {\"C1414\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.7801, -70.7389, 53.54},",
+                "            {\"C1415\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.2401, -71.3189, 25.25},",
+                "            {\"C1416\", 7, \"Contoso Boston\", \"East\", \"None\", 42.6101, -70.7889, 35.55},",
+                "            {\"C1417\", 7, \"Contoso Boston\", \"East\", \"Platinum\", 42.0701, -71.3689, 41.14},",
+                "            {\"C1418\", 7, \"Contoso Boston\", \"East\", \"Gold\", 42.4401, -70.8389, 20.18},",
+                "            {\"C1419\", 7, \"Contoso Boston\", \"East\", \"Silver\", 42.8101, -71.4189, 58.07},",
+                "            {\"C1420\", 7, \"Contoso Boston\", \"East\", \"None\", 42.2701, -70.8889, 17.22},",
+                "            {\"C1421\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.8726, -75.1852, 9.05},",
+                "            {\"C1422\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.2426, -74.6552, 54.11},",
+                "            {\"C1423\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.7026, -75.2352, 28.4},",
+                "            {\"C1424\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 40.0726, -74.7052, 41.47},",
+                "            {\"C1425\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.5326, -75.2852, 47.75},",
+                "            {\"C1426\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 39.9026, -74.7552, 35.49},",
+                "            {\"C1427\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 40.2726, -75.3352, 38.37},",
+                "            {\"C1428\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.7326, -74.8052, 39.32},",
+                "            {\"C1429\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 40.1026, -75.3852, 25.1},",
+                "            {\"C1430\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 39.5626, -74.8552, 50.8},",
+                "            {\"C1431\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.9326, -75.4352, 23.18},",
+                "            {\"C1432\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 40.3026, -74.9052, 44.74},",
+                "            {\"C1433\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.7626, -75.4852, 34.57},",
+                "            {\"C1434\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.1326, -74.9552, 26.84},",
+                "            {\"C1435\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.5926, -75.5352, 51.02},",
+                "            {\"C1436\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.9626, -75.0052, 13.72},",
+                "            {\"C1437\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 40.3326, -75.5852, 55.33},",
+                "            {\"C1438\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 39.7926, -75.0552, 20.1},",
+                "            {\"C1439\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 40.1626, -75.6352, 46.39},",
+                "            {\"C1440\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.6226, -75.1052, 37.0},",
+                "            {\"C1441\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.9926, -75.6852, 44.64},",
+                "            {\"C1442\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.3626, -75.1552, 45.53},",
+                "            {\"C1443\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.8226, -74.6252, 48.39},",
+                "            {\"C1444\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 40.1926, -75.2052, 26.87},",
+                "            {\"C1445\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.6526, -74.6752, 53.58},",
+                "            {\"C1446\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.0226, -75.2552, 10.93},",
+                "            {\"C1447\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 40.3926, -74.7252, 61.58},",
+                "            {\"C1448\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.8526, -75.3052, 16.33},",
+                "            {\"C1449\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 40.2226, -74.7752, 44.78},",
+                "            {\"C1450\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 39.6826, -75.3552, 34.11},",
+                "            {\"C1451\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 40.0526, -74.8252, 31.08},",
+                "            {\"C1452\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.5126, -75.4052, 53.01},",
+                "            {\"C1453\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.8826, -74.8752, 25.98},",
+                "            {\"C1454\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.2526, -75.4552, 41.49},",
+                "            {\"C1455\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.7126, -74.9252, 33.65},",
+                "            {\"C1456\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 40.0826, -75.5052, 32.42},",
+                "            {\"C1457\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.5426, -74.9752, 48.35},",
+                "            {\"C1458\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 39.9126, -75.5552, 33.63},",
+                "            {\"C1459\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 40.2826, -75.0252, 38.54},",
+                "            {\"C1460\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.7426, -75.6052, 44.29},",
+                "            {\"C1461\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 40.1126, -75.0752, 19.36},",
+                "            {\"C1462\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 39.5726, -75.6552, 59.52},",
+                "            {\"C1463\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.9426, -75.1252, 3.59},",
+                "            {\"C1464\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 40.3126, -75.7052, 60.96},",
+                "            {\"C1465\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.7726, -75.1752, 20.0},",
+                "            {\"C1466\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.1426, -74.6452, 49.13},",
+                "            {\"C1467\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.6026, -75.2252, 39.2},",
+                "            {\"C1468\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.9726, -74.6952, 40.22},",
+                "            {\"C1469\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 40.3426, -75.2752, 44.31},",
+                "            {\"C1470\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 39.8026, -74.7452, 39.6},",
+                "            {\"C1471\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 40.1726, -75.3252, 27.98},",
+                "            {\"C1472\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.6326, -74.7952, 47.61},",
+                "            {\"C1473\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 40.0026, -75.3752, 18.78},",
+                "            {\"C1474\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.3726, -74.8452, 54.02},",
+                "            {\"C1475\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 39.8326, -75.4252, 25.92},",
+                "            {\"C1476\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 40.2026, -74.8952, 36.07},",
+                "            {\"C1477\", 8, \"Contoso Philadelphia\", \"East\", \"Platinum\", 39.6626, -75.4752, 41.73},",
+                "            {\"C1478\", 8, \"Contoso Philadelphia\", \"East\", \"Gold\", 40.0326, -74.9452, 20.78},",
+                "            {\"C1479\", 8, \"Contoso Philadelphia\", \"East\", \"Silver\", 40.4026, -75.5252, 58.62},",
+                "            {\"C1480\", 8, \"Contoso Philadelphia\", \"East\", \"None\", 39.8626, -74.9952, 17.64}",
+                "        }",
+                "    )",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Customer Count",
+            "expression": "COUNTROWS ( CustomerGeography )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Avg Distance Km",
+            "expression": "AVERAGE ( CustomerGeography[DistanceKm] )",
+            "formatString": "#,0.0"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "StoreGeography-CustomerGeography",
+        "fromTable": "CustomerGeography",
+        "fromColumn": "HomeStoreID",
+        "toTable": "StoreGeography",
+        "toColumn": "StoreID",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"CategorySales\", \"MonthlyRevenue\", \"CategoryMonthlySales\", \"StoreGeography\", \"CustomerGeography\"]"
+      },
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ]
+  }
+}
