@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tbSqlCatchment",
+  "position": {
+    "x": 16,
+    "y": 12,
+    "z": 0,
+    "width": 1248,
+    "height": 92,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "STDistance, recomputed on every click  ",
+                    "textStyle": {
+                      "fontSize": "18pt",
+                      "fontWeight": "bold",
+                      "color": "#1F4E79"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "dbo.vw_StoreCatchment CROSS JOINs 8 stores against 480 customers and evaluates GeoPoint.STDistance for all 3,840 pairs - a real distance buffer, not a bounding box. STDistance returns metres for geography, hence the /1000 in the view. It answers in about 10 ms, which is why DirectQuery is safe here. Performance Analyzer > Copy query shows the SQL Power BI sent.",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "fontWeight": "normal",
+                      "color": "#333333"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

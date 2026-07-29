@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tbSqlRegions",
+  "position": {
+    "x": 16,
+    "y": 12,
+    "z": 0,
+    "width": 1248,
+    "height": 104,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "STIntersects, STArea, and the STCentroid trap  ",
+                    "textStyle": {
+                      "fontSize": "18pt",
+                      "fontWeight": "bold",
+                      "color": "#1F4E79"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "dbo.vw_StoreRegionCheck joins each store to a region by GEOMETRY - ON b.Boundary.STIntersects(s.GeoPoint) = 1 - a join on shape rather than on a key. STArea() returns square metres. The gotcha worth the page: geography has no STCentroid() (that is geometry-only, and calling it fails with Msg 6506), so the centre points below come from EnvelopeCenter() instead. The centres are plotted on a scatter rather than a map on purpose: Azure Maps geocodes whatever is in its Location field, and \"South\" is not a place - it lands in the Atlantic.",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "fontWeight": "normal",
+                      "color": "#333333"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "scatterRegionCentres",
+  "position": {
+    "x": 16,
+    "y": 244,
+    "z": 0,
+    "width": 620,
+    "height": 270,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "scatterChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RegionBoundaries"
+                    }
+                  },
+                  "Property": "RegionName"
+                }
+              },
+              "queryRef": "RegionBoundaries.RegionName",
+              "nativeQueryRef": "Region"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RegionBoundaries"
+                        }
+                      },
+                      "Property": "CenterLongitude"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(RegionBoundaries.CenterLongitude)",
+              "nativeQueryRef": "Longitude"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RegionBoundaries"
+                        }
+                      },
+                      "Property": "CenterLatitude"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(RegionBoundaries.CenterLatitude)",
+              "nativeQueryRef": "Latitude"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RegionBoundaries"
+                    }
+                  },
+                  "Property": "RegionName"
+                }
+              },
+              "queryRef": "RegionBoundaries.RegionName",
+              "nativeQueryRef": "Region"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Region centres from EnvelopeCenter(), longitude x latitude'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "PL300-Spatial-SQL"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "ef1fab1a-5e48-4dae-82fa-29f384b7c637"
+  }
+}

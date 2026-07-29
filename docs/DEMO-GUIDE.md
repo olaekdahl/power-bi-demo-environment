@@ -714,6 +714,26 @@ Two gotchas baked into the script as comments, both worth showing:
 - **`geometry` and `geography` are not interchangeable.** `STCentroid()` exists
   only on `geometry`; on `geography` you need `EnvelopeCenter()`.
 
+**The finished Power BI version is `powerbi/PL300-Spatial-SQL.pbip`** — five pages
+reading these views live over DirectQuery, so every distance and every
+point-in-polygon test is computed by SQL Server as the visual asks for it. Storage
+mode reads **Mixed**: six DirectQuery tables plus one Import table over
+`Person.Address.SpatialLocation`, a genuine `geography` column in
+AdventureWorks2022.
+
+Two things to set up before you show it, both in
+[`../powerbi/README.md`](../powerbi/README.md): it prompts for SQL credentials on
+first open, and pages 3 and 4 are validation checks that currently **pass**, so
+their headline cards read `0`. Say that expected answer out loud before you click —
+otherwise a zero reads as a broken demo. There is a one-line `UPDATE` in that README
+that makes them non-zero live, and because the tables are DirectQuery the cards move
+with no refresh, which is the most convincing thirty seconds of "this is live" you
+can put on a projector.
+
+Page 5 of `PL300-Demos.pbip` covers the same ground with the rows baked in as inline
+literals — use that one if you are off the VM or want a file with no credential
+prompt.
+
 ### Demo 18 — R in Power BI
 **Modules: Perform analytics / Enhance report designs**
 

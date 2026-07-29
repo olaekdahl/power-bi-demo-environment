@@ -1,0 +1,112 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblRegionWkt",
+  "position": {
+    "x": 648,
+    "y": 478,
+    "z": 0,
+    "width": 616,
+    "height": 226,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RegionBoundaries"
+                    }
+                  },
+                  "Property": "RegionName"
+                }
+              },
+              "queryRef": "RegionBoundaries.RegionName",
+              "nativeQueryRef": "Region"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RegionBoundaries"
+                        }
+                      },
+                      "Property": "PointCount"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(RegionBoundaries.PointCount)",
+              "nativeQueryRef": "Points"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RegionBoundaries"
+                        }
+                      },
+                      "Property": "AreaSqKm"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(RegionBoundaries.AreaSqKm)",
+              "nativeQueryRef": "Area sq km"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RegionBoundaries"
+                    }
+                  },
+                  "Property": "WellKnownText"
+                }
+              },
+              "queryRef": "RegionBoundaries.WellKnownText",
+              "nativeQueryRef": "Polygon WKT"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Polygon WKT, area and vertex count'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

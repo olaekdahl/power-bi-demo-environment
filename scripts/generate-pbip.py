@@ -25,20 +25,11 @@ import csv
 import json
 import shutil
 from collections import defaultdict
+from dataclasses import dataclass, field
 from pathlib import Path
 
-NAME = "PL300-Demos"
-
-# Fixed so regeneration produces identical output instead of churning git.
-LOGICAL_IDS = {
-    "report": "6f1d2b7a-3c4e-4a51-9b0d-7e2f8a1c4d55",
-    "model": "b28c7f14-9a3d-4e62-8f07-1c5d93ab6e20",
-}
-
-SQL_SOURCE_NOTE = (
-    "Rows below are the output of {view} in the PL300Demo database on the demo "
-    "VM. To read them live from SQL Server instead, replace the Source step with:"
-)
+SQL_SERVER = "localhost"
+SQL_DATABASE = "PL300Demo"
 
 
 # --------------------------------------------------------------------------- #
@@ -66,14 +57,12 @@ def m_num(v, dp=None):
     return repr(f)
 
 
-LIVE_SQL_DOCS = []
-
-
-def inline_table(cols, rows, live_sql=None, view=None, indent="        "):
+def inline_table(cols, rows, live_sql=None, view=None, indent="        ", docs=None):
     """
     Build an M expression for an inline table.
 
     cols: list of (name, m_type, formatter)
+    docs: optional list collecting (view, live_sql) pairs for LIVE-SQL-QUERIES.md
 
     NOTE: the live-SQL alternative is deliberately NOT emitted as a comment
     inside the M. A `//` comment ahead of `let` is valid M in isolation, but in
@@ -83,8 +72,8 @@ def inline_table(cols, rows, live_sql=None, view=None, indent="        "):
     LIVE-SQL-QUERIES.md instead.
     """
     lines = []
-    if view and live_sql:
-        LIVE_SQL_DOCS.append((view, live_sql.strip()))
+    if view and live_sql and docs is not None:
+        docs.append((view, live_sql.strip()))
     lines.append("let")
     type_parts = ", ".join(f"{n} = {t}" for n, t, _ in cols)
     lines.append(f"    Source = #table(")
@@ -99,6 +88,31 @@ def inline_table(cols, rows, live_sql=None, view=None, indent="        "):
     lines.append("in")
     lines.append("    Source")
     return lines
+
+
+def sql_view(view, server=SQL_SERVER, database=SQL_DATABASE, indent="    "):
+    """
+    M that navigates to a SQL Server view - the source step for a live table.
+
+    Deliberately navigation, NOT Sql.Database(server, db, [Query = "SELECT ..."]):
+
+      * a native query raises the "native database query" approval dialog for
+        every distinct query text, which is a guaranteed stall in front of a
+        class, and Microsoft documents it as unusable for incremental refresh;
+      * navigation folds, so `View Native Query` stays enabled in the Power
+        Query editor - which is itself one of the demos on the catchment page.
+
+    All the SELECT logic already lives in the views, so there is nothing a
+    native query would buy.
+    """
+    step = "dbo_" + view
+    return [
+        "let",
+        f"{indent}Source = Sql.Database({m_str(server)}, {m_str(database)}),",
+        f'{indent}{step} = Source{{[Schema="dbo",Item={m_str(view)}]}}[Data]',
+        "in",
+        f"{indent}{step}",
+    ]
 
 
 def col(name, dtype, summarize="none", fmt=None, data_category=None, sort_by=None):
@@ -119,13 +133,22 @@ def col(name, dtype, summarize="none", fmt=None, data_category=None, sort_by=Non
     return c
 
 
-def table(name, columns, expression, measures=None):
+def table(name, columns, expression, measures=None, mode="import"):
+    """
+    mode: "import" or "directQuery" - the TMSL ModeType enum is camelCase and is
+    matched case-sensitively. A DirectQuery table is never refreshed, so Power BI
+    gets no chance to infer a schema: every column has to be declared here by
+    hand with a sourceColumn and dataType that match the view exactly, or the
+    table errors on open.
+    """
+    if mode not in ("import", "directQuery", "dual"):
+        raise ValueError(f"{name}: unsupported partition mode {mode!r}")
     t = {
         "name": name,
         "columns": columns,
         "partitions": [{
             "name": f"{name}-partition",
-            "mode": "import",
+            "mode": mode,
             "source": {"type": "m", "expression": expression},
         }],
         "annotations": [{"name": "PBI_ResultType", "value": "Table"}],
@@ -205,7 +228,43 @@ def load_contoso_aggregates(demo_data):
 # Semantic model
 # --------------------------------------------------------------------------- #
 
-def build_model(categories, monthly, cat_monthly, stores, catchment, customers):
+def model_envelope(tables, relationships):
+    """
+    The TMSL wrapper shared by every solution.
+
+    Property order is load-bearing for byte-identical regeneration - json.dump
+    writes insertion order - so this literal is not to be tidied or re-sorted.
+    """
+    return {
+        "name": "SemanticModel",
+        "compatibilityLevel": 1550,
+        "model": {
+            "culture": "en-US",
+            "dataAccessOptions": {
+                "legacyRedirects": True,
+                "returnErrorValuesAsNull": True,
+            },
+            "defaultPowerBIDataSourceVersion": "powerBI_V3",
+            "sourceQueryCulture": "en-US",
+            "tables": tables,
+            "relationships": relationships,
+            "annotations": [
+                {"name": "PBI_QueryOrder",
+                 "value": json.dumps([t["name"] for t in tables])},
+                {"name": "__PBI_TimeIntelligenceEnabled", "value": "0"},
+            ],
+        },
+    }
+
+
+def build_demo_model(sources, docs):
+    """The inline-literal solution: no data source, no credential prompt."""
+    categories = sources["categories"]
+    monthly = sources["monthly"]
+    cat_monthly = sources["cat_monthly"]
+    stores = sources["stores"]
+    catchment = sources["catchment"]
+    customers = sources["customers"]
     catch_by_id = {c["StoreID"]: c for c in catchment}
 
     store_rows = []
@@ -308,6 +367,7 @@ def build_model(categories, monthly, cat_monthly, stores, catchment, customers):
              ("CustomersWithin50km", "Int64.Type", integer),
              ("CustomersWithin100km", "Int64.Type", integer)],
             store_rows,
+            docs=docs,
             view="dbo.vw_StoreLocations + dbo.vw_StoreCatchment",
             live_sql='Source = Sql.Database("localhost", "PL300Demo",\n'
                      '    [Query = "SELECT s.StoreID, s.StoreName, s.City, s.[State], s.RegionName,\n'
@@ -333,6 +393,7 @@ def build_model(categories, monthly, cat_monthly, stores, catchment, customers):
              ("LoyaltyTier", "text", txt), ("Latitude", "number", num6),
              ("Longitude", "number", num6), ("DistanceKm", "number", num2)],
             cust_rows,
+            docs=docs,
             view="dbo.vw_CustomerLocations",
             live_sql='Source = Sql.Database("localhost", "PL300Demo",\n'
                      '    [Query = "SELECT c.CustomerID, c.HomeStoreID, s.StoreName, s.RegionName,\n'
@@ -354,26 +415,251 @@ def build_model(categories, monthly, cat_monthly, stores, catchment, customers):
         "crossFilteringBehavior": "oneDirection",
     }]
 
-    return {
-        "name": "SemanticModel",
-        "compatibilityLevel": 1550,
-        "model": {
-            "culture": "en-US",
-            "dataAccessOptions": {
-                "legacyRedirects": True,
-                "returnErrorValuesAsNull": True,
-            },
-            "defaultPowerBIDataSourceVersion": "powerBI_V3",
-            "sourceQueryCulture": "en-US",
-            "tables": tables,
-            "relationships": relationships,
-            "annotations": [
-                {"name": "PBI_QueryOrder",
-                 "value": json.dumps([t["name"] for t in tables])},
-                {"name": "__PBI_TimeIntelligenceEnabled", "value": "0"},
+    return model_envelope(tables, relationships)
+
+
+# --------------------------------------------------------------------------- #
+# Semantic model - live from SQL Server
+# --------------------------------------------------------------------------- #
+#
+# Every column each view actually exposes, transcribed from
+# sys.dm_exec_describe_first_result_set run against PL300Demo on the demo VM.
+#
+# This exists because model.bim is the one generated file nothing validates
+# offline: validate-pbip.py skips any document without a `$schema`, and TMSL has
+# none. A DirectQuery table is never refreshed either, so Power BI never gets a
+# chance to infer a schema and reconcile a wrong name - it just errors when the
+# project is opened against SQL Server, a full VM round trip away. Checking
+# against this inventory turns that into a generator-time failure.
+#
+# The trap it is really here to catch: vw_CustomerLocations calls its store
+# column HomeStoreName. The inline-literal solution aliases it to StoreName in
+# its hand-written SELECT, but navigation gives you the view's real name.
+
+VIEW_COLUMNS = {
+    "vw_StoreLocations": {
+        "StoreID": "int64", "StoreName": "string", "City": "string",
+        "State": "string", "RegionID": "int64", "RegionName": "string",
+        "Latitude": "double", "Longitude": "double",
+        "WellKnownText": "string", "CityState": "string",
+    },
+    "vw_StoreCatchment": {
+        "StoreID": "int64", "StoreName": "string", "RegionName": "string",
+        "CustomersWithin25km": "int64", "CustomersWithin50km": "int64",
+        "CustomersWithin100km": "int64", "CustomersTotal": "int64",
+    },
+    "vw_CustomerLocations": {
+        "CustomerKey": "int64", "CustomerID": "string", "HomeStoreID": "int64",
+        "HomeStoreName": "string", "RegionName": "string", "LoyaltyTier": "string",
+        "Latitude": "double", "Longitude": "double",
+        "DistanceToHomeStoreKm": "double",
+    },
+    "vw_CustomerNearestStore": {
+        "CustomerID": "string", "HomeStoreID": "int64", "NearestStoreID": "int64",
+        "NearestStoreName": "string", "DistanceKm": "double",
+        "NearestIsHomeStore": "string",
+    },
+    "vw_StoreRegionCheck": {
+        "StoreID": "int64", "StoreName": "string", "AssignedRegion": "string",
+        "ContainingRegion": "string", "Result": "string", "RegionAreaSqKm": "double",
+    },
+    "vw_RegionBoundaries": {
+        "RegionID": "int64", "RegionName": "string", "WellKnownText": "string",
+        "CenterLatitude": "double", "CenterLongitude": "double",
+        "AreaSqKm": "double", "PointCount": "int64",
+    },
+    "vw_AdventureWorksAddresses": {
+        "AddressID": "int64", "City": "string", "StateProvince": "string",
+        "StateProvinceCode": "string", "CountryRegion": "string",
+        "PostalCode": "string", "Latitude": "double", "Longitude": "double",
+    },
+}
+
+
+def sql_table(name, view, columns, measures=None, mode="directQuery"):
+    """A table bound to a PL300Demo view, checked against VIEW_COLUMNS."""
+    known = VIEW_COLUMNS[view]
+    for c in columns:
+        src = c["sourceColumn"]
+        if src not in known:
+            raise SystemExit(
+                f"{name}: dbo.{view} has no column {src!r}. "
+                f"It exposes: {', '.join(sorted(known))}")
+        if c["dataType"] != known[src]:
+            raise SystemExit(
+                f"{name}[{src}]: declared as {c['dataType']}, "
+                f"but dbo.{view} returns {known[src]}")
+    return table(name, columns, sql_view(view), measures=measures, mode=mode)
+
+
+def build_sql_model(sources, docs):
+    """
+    Six DirectQuery tables plus one Import table - a composite ("Mixed") model.
+
+    DirectQuery is the right default here purely on measurement: every view
+    answers in under 50 ms on the demo VM (RegionBoundaries 1 ms,
+    CustomerLocations 2 ms, StoreCatchment 9-10 ms, CustomerNearestStore
+    21-23 ms, AdventureWorksAddresses 46 ms), and the largest table is 19,614
+    rows against DirectQuery's 1,000,000-row intermediate limit. The views that
+    sound expensive - an 8x480 cross join with STDistance, a CROSS APPLY TOP 1
+    nearest-neighbour - are the two that were timed most carefully, and neither
+    is a risk at this volume.
+
+    AdventureWorksAddresses is Import on purpose, and it is the only Import
+    table: it makes the storage mode read "Mixed", puts a populated Data view
+    beside six that say "DirectQuery tables can't be shown", and means stopping
+    the SQL Server service breaks four pages while page 5 keeps rendering.
+    """
+    del sources, docs  # this solution reads no CSVs and emits no live-SQL doc
+
+    tables = [
+        sql_table(
+            "StoreLocations", "vw_StoreLocations",
+            [col("StoreID", "int64", fmt="0"), col("StoreName", "string"),
+             col("City", "string", data_category="City"),
+             col("State", "string", data_category="StateOrProvince"),
+             col("RegionID", "int64", fmt="0"), col("RegionName", "string"),
+             col("Latitude", "double", fmt="0.0000", data_category="Latitude"),
+             col("Longitude", "double", fmt="0.0000", data_category="Longitude"),
+             col("WellKnownText", "string"),
+             # What Power BI geocodes when you give it no coordinates.
+             col("CityState", "string", data_category="Place")],
+            measures=[
+                measure("Store Count", "DISTINCTCOUNT ( StoreLocations[StoreID] )", "#,0"),
+            ]),
+
+        sql_table(
+            "StoreCatchment", "vw_StoreCatchment",
+            [col("StoreID", "int64", fmt="0"), col("StoreName", "string"),
+             col("RegionName", "string"),
+             col("CustomersWithin25km", "int64", "sum", "#,0"),
+             col("CustomersWithin50km", "int64", "sum", "#,0"),
+             col("CustomersWithin100km", "int64", "sum", "#,0"),
+             # COUNT(*) over the cross join, so this is 480 on all 8 rows.
+             # Summing it gives a plausible-looking 3,840.
+             col("CustomersTotal", "int64", "none", "#,0")],
+            measures=[
+                measure("Within 25 km", "SUM ( StoreCatchment[CustomersWithin25km] )", "#,0"),
+                measure("Within 50 km", "SUM ( StoreCatchment[CustomersWithin50km] )", "#,0"),
+                measure("Within 100 km", "SUM ( StoreCatchment[CustomersWithin100km] )", "#,0"),
+                measure("Catchment Coverage %",
+                        "DIVIDE ( [Within 50 km], [Within 100 km] )", "0.0%;-0.0%;0.0%"),
+            ]),
+
+        sql_table(
+            "CustomerLocations", "vw_CustomerLocations",
+            [col("CustomerKey", "int64", fmt="0"), col("CustomerID", "string"),
+             col("HomeStoreID", "int64", fmt="0"),
+             col("HomeStoreName", "string"), col("RegionName", "string"),
+             col("LoyaltyTier", "string"),
+             col("Latitude", "double", fmt="0.00000", data_category="Latitude"),
+             col("Longitude", "double", fmt="0.00000", data_category="Longitude"),
+             col("DistanceToHomeStoreKm", "double", "average", "#,0.00")],
+            measures=[
+                measure("Customer Count", "COUNTROWS ( CustomerLocations )", "#,0"),
+                measure("Avg Distance To Home Km",
+                        "AVERAGE ( CustomerLocations[DistanceToHomeStoreKm] )", "#,0.00"),
+            ]),
+
+        sql_table(
+            "CustomerNearestStore", "vw_CustomerNearestStore",
+            [col("CustomerID", "string"), col("HomeStoreID", "int64", fmt="0"),
+             col("NearestStoreID", "int64", fmt="0"),
+             col("NearestStoreName", "string"),
+             col("DistanceKm", "double", "average", "#,0.00"),
+             col("NearestIsHomeStore", "string")],
+            measures=[
+                measure("Customers Assessed", "COUNTROWS ( CustomerNearestStore )", "#,0"),
+                measure("Nearest Is Home Store",
+                        'CALCULATE ( COUNTROWS ( CustomerNearestStore ), '
+                        'CustomerNearestStore[NearestIsHomeStore] = "Yes" )', "#,0"),
+                # The COALESCE is load-bearing, not style. This filter matches
+                # zero rows on the shipped data, and COUNTROWS over an empty
+                # table returns BLANK - which renders as an empty card that
+                # reads as a broken visual rather than the correct answer, 0.
+                measure("Reassignment Candidates",
+                        'COALESCE ( CALCULATE ( COUNTROWS ( CustomerNearestStore ), '
+                        'CustomerNearestStore[NearestIsHomeStore] = "No" ), 0 )', "#,0"),
+                measure("Assignment Match Rate",
+                        "DIVIDE ( [Nearest Is Home Store], [Customers Assessed] )",
+                        "0.0%;-0.0%;0.0%"),
+                measure("Avg Nearest Distance Km",
+                        "AVERAGE ( CustomerNearestStore[DistanceKm] )", "#,0.00"),
+            ]),
+
+        sql_table(
+            "StoreRegionCheck", "vw_StoreRegionCheck",
+            [col("StoreID", "int64", fmt="0"), col("StoreName", "string"),
+             col("AssignedRegion", "string"), col("ContainingRegion", "string"),
+             col("Result", "string"),
+             # Each region's area repeats on 2 store rows, so SUM double-counts
+             # to 20,997,820 against a true 10,498,910.
+             col("RegionAreaSqKm", "double", "none", "#,0")],
+            measures=[
+                measure("Stores Checked", "COUNTROWS ( StoreRegionCheck )", "#,0"),
+                # COALESCE for the same reason as Reassignment Candidates.
+                measure("Region Mismatches",
+                        'COALESCE ( CALCULATE ( COUNTROWS ( StoreRegionCheck ), '
+                        'StoreRegionCheck[Result] = "MISMATCH" ), 0 )', "#,0"),
+            ]),
+
+        sql_table(
+            "RegionBoundaries", "vw_RegionBoundaries",
+            [col("RegionID", "int64", fmt="0"), col("RegionName", "string"),
+             col("WellKnownText", "string"),
+             # EnvelopeCenter(), because geography has no STCentroid().
+             col("CenterLatitude", "double", fmt="0.0000", data_category="Latitude"),
+             col("CenterLongitude", "double", fmt="0.0000", data_category="Longitude"),
+             col("AreaSqKm", "double", "sum", "#,0"),
+             col("PointCount", "int64", fmt="0")],
+            measures=[
+                measure("Region Count", "DISTINCTCOUNT ( RegionBoundaries[RegionID] )", "#,0"),
+                measure("Total Region Area SqKm", "SUM ( RegionBoundaries[AreaSqKm] )", "#,0"),
+            ]),
+
+        sql_table(
+            "AdventureWorksAddresses", "vw_AdventureWorksAddresses",
+            [col("AddressID", "int64", fmt="0"),
+             col("City", "string", data_category="City"),
+             col("StateProvince", "string", data_category="StateOrProvince"),
+             # nchar(3), so two-letter codes arrive padded with a trailing
+             # space. Fine to display, broken as a join key or slicer label.
+             col("StateProvinceCode", "string"),
+             col("CountryRegion", "string", data_category="Country"),
+             col("PostalCode", "string", data_category="PostalCode"),
+             col("Latitude", "double", fmt="0.0000", data_category="Latitude"),
+             col("Longitude", "double", fmt="0.0000", data_category="Longitude")],
+            measures=[
+                measure("Address Count", "COUNTROWS ( AdventureWorksAddresses )", "#,0"),
+                measure("Country Count",
+                        "DISTINCTCOUNT ( AdventureWorksAddresses[CountryRegion] )", "#,0"),
+                measure("City Count",
+                        "DISTINCTCOUNT ( AdventureWorksAddresses[City] )", "#,0"),
             ],
-        },
-    }
+            mode="import"),
+    ]
+
+    # A plain star into StoreLocations, plus one snowflake hop to
+    # RegionBoundaries. CustomerNearestStore[NearestStoreID] is deliberately
+    # left unrelated: a second path to StoreLocations would be ambiguous, and
+    # the view already denormalises NearestStoreName.
+    #
+    # AdventureWorksAddresses is an island on purpose. It is the only Import
+    # table, so leaving it unrelated means the model contains no Import-to-
+    # DirectQuery relationship, and therefore no limited relationships.
+    rels = [("StoreCatchment", "StoreID", "StoreLocations", "StoreID"),
+            ("StoreRegionCheck", "StoreID", "StoreLocations", "StoreID"),
+            ("CustomerLocations", "HomeStoreID", "StoreLocations", "StoreID"),
+            ("CustomerNearestStore", "HomeStoreID", "StoreLocations", "StoreID"),
+            ("StoreLocations", "RegionID", "RegionBoundaries", "RegionID")]
+    relationships = [{
+        "name": f"{ft}-{tt}",
+        "fromTable": ft, "fromColumn": fc,
+        "toTable": tt, "toColumn": tc,
+        "crossFilteringBehavior": "oneDirection",
+    } for ft, fc, tt, tc in rels]
+
+    return model_envelope(tables, relationships)
 
 
 # --------------------------------------------------------------------------- #
@@ -723,7 +1009,323 @@ def page_spatial():
     ]
 
 
-PAGE_BUILDERS = {
+# --------------------------------------------------------------------------- #
+# Pages - the live-SQL solution
+# --------------------------------------------------------------------------- #
+#
+# These bind to the view-derived table names (StoreLocations, CustomerLocations,
+# ...), not the inline solution's StoreGeography / CustomerGeography, so no page
+# builder is shared between the two registries.
+#
+# All narration goes in textbox visuals, because that is the only text on the
+# legacy report.json path that survives. Two things do NOT, both confirmed by
+# screenshotting this solution on the VM:
+#
+#   * `visualContainerObjects` - so `title_text` is honoured only under --pbir.
+#     The rendered title is otherwise auto-generated ("CustomersWithin50km by
+#     City").
+#   * `nativeQueryRef` -> the legacy `NativeReferenceName`. Table headers and
+#     axis captions come out as the raw model names regardless ("StoreName",
+#     "Average of Latitude"), so the aliases below document intent and take
+#     effect under --pbir, but do not rename anything today.
+#
+# Practical consequence: keep model column names presentable, and leave room in
+# table visuals for the full unaliased header.
+
+def page_sql_stores():
+    return "PageSqlStores", "1. Stores (geography to columns)", [
+        textbox("tbSqlStores", 16, 12, 1248, 92, [
+            {"text": "A geography column, projected into columns  ", "size": 18,
+             "bold": True, "colour": ACCENT},
+            {"text": "Live from SQL Server: dbo.vw_StoreLocations over "
+                     "PL300Demo, in DirectQuery. Power BI has no spatial data "
+                     "type at all - the documented type list stops at "
+                     "Text/Number/Date/Boolean/Binary - so StoreLocation.GeoPoint "
+                     "has nowhere to land. The view is what makes it usable: "
+                     ".Lat and .Long become numbers, .STAsText() becomes the WKT "
+                     "text in the last column.", "size": 11},
+        ]),
+        visual("cardStores", "card", 16, 112, 300, 104,
+               roles={"Values": [proj_measure("StoreLocations", "Store Count")]},
+               title_text="Stores"),
+        visual("cardRegions", "card", 328, 112, 300, 104,
+               roles={"Values": [proj_measure("RegionBoundaries", "Region Count")]},
+               title_text="Region polygons"),
+        visual("cardCustomers", "card", 640, 112, 300, 104,
+               roles={"Values": [proj_measure("CustomerLocations", "Customer Count")]},
+               title_text="Customer points"),
+        # The one Import number sitting beside three DirectQuery ones.
+        visual("cardAddresses", "card", 952, 112, 312, 104,
+               roles={"Values": [proj_measure("AdventureWorksAddresses", "Address Count")]},
+               title_text="AdventureWorks addresses (Import)"),
+        # No Size role, deliberately. Binding CustomersWithin50km here looked
+        # right and rendered a lie: Azure Maps stretches whatever range it is
+        # given across the full bubble-size scale, so values of 44..52 - a 15%
+        # spread - came out as Austin at a tenth the diameter of Bellevue.
+        # Magnitudes belong on page 2, where a column chart gives them an axis.
+        visual("mapStores", "azureMap", 16, 232, 620, 472,
+               roles={
+                   "Category": [proj_column("StoreLocations", "City")],
+                   "Latitude": [proj_avg("StoreLocations", "Latitude", "Latitude")],
+                   "Longitude": [proj_avg("StoreLocations", "Longitude", "Longitude")],
+               },
+               title_text="Store locations from the geography column"),
+        visual("tblStoreWkt", "tableEx", 648, 232, 616, 472,
+               roles={"Values": [
+                   proj_column("StoreLocations", "StoreName", "Store"),
+                   proj_column("StoreLocations", "State"),
+                   proj_column("StoreLocations", "RegionName", "Region"),
+                   proj_avg("StoreLocations", "Latitude", "Latitude"),
+                   proj_avg("StoreLocations", "Longitude", "Longitude"),
+                   proj_column("StoreLocations", "WellKnownText", "WKT from .STAsText()"),
+               ]},
+               title_text="Well-known text, straight from the geography column"),
+    ]
+
+
+def page_sql_catchment():
+    return "PageSqlCatchment", "2. Catchment (STDistance)", [
+        textbox("tbSqlCatchment", 16, 12, 1248, 92, [
+            {"text": "STDistance, recomputed on every click  ", "size": 18,
+             "bold": True, "colour": ACCENT},
+            {"text": "dbo.vw_StoreCatchment CROSS JOINs 8 stores against 480 "
+                     "customers and evaluates GeoPoint.STDistance for all 3,840 "
+                     "pairs - a real distance buffer, not a bounding box. "
+                     "STDistance returns metres for geography, hence the /1000 "
+                     "in the view. It answers in about 10 ms, which is why "
+                     "DirectQuery is safe here. Performance Analyzer > Copy "
+                     "query shows the SQL Power BI sent.", "size": 11},
+        ]),
+        visual("cardWithin25", "card", 16, 112, 300, 104,
+               roles={"Values": [proj_measure("StoreCatchment", "Within 25 km")]},
+               title_text="Within 25 km"),
+        visual("cardWithin50", "card", 328, 112, 300, 104,
+               roles={"Values": [proj_measure("StoreCatchment", "Within 50 km")]},
+               title_text="Within 50 km"),
+        visual("cardWithin100", "card", 640, 112, 300, 104,
+               roles={"Values": [proj_measure("StoreCatchment", "Within 100 km")]},
+               title_text="Within 100 km"),
+        visual("cardCoverage", "card", 952, 112, 312, 104,
+               roles={"Values": [proj_measure("StoreCatchment", "Catchment Coverage %")]},
+               title_text="50 km as a share of 100 km"),
+        # clusteredColumnChart, NOT columnChart. Power BI's "columnChart" is the
+        # STACKED column chart, and these three buffers are cumulative - every
+        # customer within 25 km is also within 50 and 100 - so stacking them
+        # adds a number to itself. Bellevue rendered as 15+52+60 = 127, a total
+        # that means nothing and that nobody questions from the back of a room.
+        visual("chartCatchment", "clusteredColumnChart", 16, 232, 700, 472,
+               roles={
+                   "Category": [proj_column("StoreCatchment", "StoreName", "Store")],
+                   "Y": [proj_measure("StoreCatchment", "Within 25 km"),
+                         proj_measure("StoreCatchment", "Within 50 km"),
+                         proj_measure("StoreCatchment", "Within 100 km")],
+               },
+               title_text="Customers inside each distance buffer"),
+        visual("tblCatchment", "tableEx", 732, 232, 532, 472,
+               roles={"Values": [
+                   proj_column("StoreCatchment", "StoreName", "Store"),
+                   proj_column("StoreCatchment", "CustomersWithin25km", "25 km"),
+                   proj_column("StoreCatchment", "CustomersWithin50km", "50 km"),
+                   proj_column("StoreCatchment", "CustomersWithin100km", "100 km"),
+               ]},
+               title_text="Catchment counts per store"),
+    ]
+
+
+def page_sql_nearest():
+    return "PageSqlNearest", "3. Nearest store (CROSS APPLY)", [
+        textbox("tbSqlNearest", 16, 12, 1248, 104, [
+            {"text": "Nearest-neighbour: CROSS APPLY TOP 1 ORDER BY STDistance  ",
+             "size": 18, "bold": True, "colour": ACCENT},
+            {"text": "dbo.vw_CustomerNearestStore ignores HomeStoreID entirely "
+                     "and picks the closest store geometrically, then compares "
+                     "the two. Expect 480 of 480 to agree and 0 reassignment "
+                     "candidates - this is a data-quality check that currently "
+                     "PASSES, so say the expected answer out loud before you "
+                     "click. powerbi/README.md has a one-line UPDATE that makes "
+                     "it fail, and because these tables are DirectQuery the "
+                     "cards move with no refresh.", "size": 11},
+        ]),
+        visual("cardAssessed", "card", 16, 124, 300, 104,
+               roles={"Values": [proj_measure("CustomerNearestStore", "Customers Assessed")]},
+               title_text="Customers assessed"),
+        visual("cardMatch", "card", 328, 124, 300, 104,
+               roles={"Values": [proj_measure("CustomerNearestStore", "Nearest Is Home Store")]},
+               title_text="Nearest is the home store"),
+        visual("cardCandidates", "card", 640, 124, 300, 104,
+               roles={"Values": [proj_measure("CustomerNearestStore", "Reassignment Candidates")]},
+               title_text="Reassignment candidates"),
+        visual("cardRate", "card", 952, 124, 312, 104,
+               roles={"Values": [proj_measure("CustomerNearestStore", "Assignment Match Rate")]},
+               title_text="Assignment match rate"),
+        visual("scatterCustomers", "scatterChart", 16, 244, 760, 460,
+               roles={
+                   "Category": [proj_column("CustomerLocations", "CustomerID")],
+                   "X": [proj_avg("CustomerLocations", "Longitude", "Longitude")],
+                   "Y": [proj_avg("CustomerLocations", "Latitude", "Latitude")],
+                   "Series": [proj_column("CustomerLocations", "RegionName", "Region")],
+               },
+               title_text="480 customers, longitude x latitude"),
+        visual("chartNearestDist", "columnChart", 788, 244, 476, 226,
+               roles={
+                   "Category": [proj_column("CustomerNearestStore", "NearestStoreName",
+                                            "Nearest store")],
+                   "Y": [proj_measure("CustomerNearestStore", "Avg Nearest Distance Km")],
+               },
+               title_text="Average distance to the nearest store"),
+        visual("tblNearest", "tableEx", 788, 478, 476, 226,
+               roles={"Values": [
+                   proj_column("CustomerNearestStore", "CustomerID", "Customer"),
+                   proj_column("CustomerNearestStore", "NearestStoreName", "Nearest store"),
+                   proj_avg("CustomerNearestStore", "DistanceKm", "Distance km"),
+                   proj_column("CustomerNearestStore", "NearestIsHomeStore", "Nearest = home?"),
+               ]},
+               title_text="Per-customer nearest-store assignment"),
+    ]
+
+
+def page_sql_regions():
+    return "PageSqlRegions", "4. Point-in-polygon (STIntersects)", [
+        textbox("tbSqlRegions", 16, 12, 1248, 104, [
+            {"text": "STIntersects, STArea, and the STCentroid trap  ",
+             "size": 18, "bold": True, "colour": ACCENT},
+            {"text": "dbo.vw_StoreRegionCheck joins each store to a region by "
+                     "GEOMETRY - ON b.Boundary.STIntersects(s.GeoPoint) = 1 - a "
+                     "join on shape rather than on a key. STArea() returns square "
+                     "metres. The gotcha worth the page: geography has no "
+                     "STCentroid() (that is geometry-only, and calling it fails "
+                     "with Msg 6506), so the centre points below come from "
+                     "EnvelopeCenter() instead. The centres are plotted on a "
+                     "scatter rather than a map on purpose: Azure Maps geocodes "
+                     "whatever is in its Location field, and \"South\" is not a "
+                     "place - it lands in the Atlantic.", "size": 11},
+        ]),
+        visual("cardStoresChecked", "card", 16, 124, 300, 104,
+               roles={"Values": [proj_measure("StoreRegionCheck", "Stores Checked")]},
+               title_text="Stores checked"),
+        visual("cardMismatches", "card", 328, 124, 300, 104,
+               roles={"Values": [proj_measure("StoreRegionCheck", "Region Mismatches")]},
+               title_text="Region mismatches"),
+        visual("cardRegionCount", "card", 640, 124, 300, 104,
+               roles={"Values": [proj_measure("RegionBoundaries", "Region Count")]},
+               title_text="Region polygons"),
+        # Sourced from RegionBoundaries (4 rows), NOT StoreRegionCheck (8 rows,
+        # each area repeated twice).
+        visual("cardArea", "card", 952, 124, 312, 104,
+               roles={"Values": [proj_measure("RegionBoundaries", "Total Region Area SqKm")]},
+               title_text="Total area (sq km)"),
+        # A scatter, not an azureMap, and the reason is worth knowing.
+        #
+        # Azure Maps resolves position from its Location bucket - the role this
+        # generator calls Category - and in this hand-authored binding the
+        # Latitude and Longitude roles did not override it. With RegionName in
+        # Location, Power BI geocoded the words "East", "North", "South" and
+        # "West": the South bubble landed in the middle of the Atlantic while
+        # the four real EnvelopeCenter coordinates sat unused. Silently - no
+        # error, no warning, just a wrong map. Dropping Location instead makes
+        # the visual render zero marks, so there is no coordinates-only mode to
+        # fall back to.
+        #
+        # A scatter plots longitude and latitude as plain numbers, so nothing
+        # gets geocoded and the points are exactly where the geography column
+        # says they are. Page 1 keeps a real Azure map because its Location
+        # field is City, which geocodes to the right place.
+        visual("scatterRegionCentres", "scatterChart", 16, 244, 620, 270,
+               roles={
+                   "Category": [proj_column("RegionBoundaries", "RegionName", "Region")],
+                   "X": [proj_avg("RegionBoundaries", "CenterLongitude", "Longitude")],
+                   "Y": [proj_avg("RegionBoundaries", "CenterLatitude", "Latitude")],
+                   "Series": [proj_column("RegionBoundaries", "RegionName", "Region")],
+               },
+               title_text="Region centres from EnvelopeCenter(), longitude x latitude"),
+        visual("chartArea", "clusteredColumnChart", 16, 522, 620, 182,
+               roles={
+                   "Category": [proj_column("RegionBoundaries", "RegionName", "Region")],
+                   "Y": [proj_sum("RegionBoundaries", "AreaSqKm", "Area sq km")],
+               },
+               title_text="Polygon area by region"),
+        visual("tblRegionCheck", "tableEx", 648, 244, 616, 226,
+               roles={"Values": [
+                   proj_column("StoreRegionCheck", "StoreName", "Store"),
+                   proj_column("StoreRegionCheck", "AssignedRegion", "Assigned"),
+                   proj_column("StoreRegionCheck", "ContainingRegion", "Contains the point"),
+                   proj_column("StoreRegionCheck", "Result"),
+               ]},
+               title_text="Assigned region vs the polygon that contains the point"),
+        visual("tblRegionWkt", "tableEx", 648, 478, 616, 226,
+               roles={"Values": [
+                   proj_column("RegionBoundaries", "RegionName", "Region"),
+                   proj_sum("RegionBoundaries", "PointCount", "Points"),
+                   proj_sum("RegionBoundaries", "AreaSqKm", "Area sq km"),
+                   proj_column("RegionBoundaries", "WellKnownText", "Polygon WKT"),
+               ]},
+               title_text="Polygon WKT, area and vertex count"),
+    ]
+
+
+def page_sql_adventureworks():
+    return "PageSqlAdventureWorks", "5. Real geography column (Import)", [
+        textbox("tbSqlAw", 16, 12, 1248, 104, [
+            {"text": "A genuine Microsoft geography column  ", "size": 18,
+             "bold": True, "colour": ACCENT},
+            {"text": "Person.Address.SpatialLocation in AdventureWorks2022 is a "
+                     "real geography column in a Microsoft sample database, not "
+                     "demo data - and dbo.vw_AdventureWorksAddresses projects it "
+                     "with exactly the same .Lat / .Long pattern as page 1, so "
+                     "the technique generalises. This is also the only Import "
+                     "table in the model, which is what makes the storage mode "
+                     "read Mixed.", "size": 11},
+        ]),
+        visual("cardAwCount", "card", 16, 124, 300, 104,
+               roles={"Values": [proj_measure("AdventureWorksAddresses", "Address Count")]},
+               title_text="Addresses"),
+        visual("cardAwCountries", "card", 328, 124, 300, 104,
+               roles={"Values": [proj_measure("AdventureWorksAddresses", "Country Count")]},
+               title_text="Countries / regions"),
+        visual("cardAwCities", "card", 640, 124, 300, 104,
+               roles={"Values": [proj_measure("AdventureWorksAddresses", "City Count")]},
+               title_text="Cities"),
+        textbox("tbAwMode", 952, 124, 312, 104, [
+            {"text": "Import. ", "size": 11, "bold": True, "colour": ACCENT},
+            {"text": "Data view shows its 19,614 rows; the six DirectQuery "
+                     "tables say \"DirectQuery tables can't be shown\". Stop the "
+                     "SQL Server service and pages 1-4 go red while this one "
+                     "keeps rendering.", "size": 10},
+        ]),
+        # No Size role: binding a measure into azureMap's Size is one step off
+        # the shape proven elsewhere in this file, and it buys nothing here.
+        visual("mapAw", "azureMap", 16, 244, 760, 460,
+               roles={
+                   "Category": [proj_column("AdventureWorksAddresses", "City")],
+                   "Latitude": [proj_avg("AdventureWorksAddresses", "Latitude", "Latitude")],
+                   "Longitude": [proj_avg("AdventureWorksAddresses", "Longitude", "Longitude")],
+               },
+               title_text="19,614 addresses across three continents"),
+        visual("chartAwCountry", "columnChart", 788, 244, 476, 226,
+               roles={
+                   "Category": [proj_column("AdventureWorksAddresses", "CountryRegion",
+                                            "Country / region")],
+                   "Y": [proj_measure("AdventureWorksAddresses", "Address Count")],
+               },
+               title_text="Addresses by country"),
+        # Deliberate redundancy: the same footprint with no Azure Maps
+        # dependency, so a blocked tenant or firewall degrades the page instead
+        # of emptying it.
+        visual("scatterAwFallback", "scatterChart", 788, 478, 476, 226,
+               roles={
+                   "Category": [proj_column("AdventureWorksAddresses", "City")],
+                   "X": [proj_avg("AdventureWorksAddresses", "Longitude", "Longitude")],
+                   "Y": [proj_avg("AdventureWorksAddresses", "Latitude", "Latitude")],
+                   "Series": [proj_column("AdventureWorksAddresses", "CountryRegion", "Country")],
+               },
+               title_text="The same points without Azure Maps"),
+    ]
+
+
+# Two registries, never one dict. main() derives both the page set and its order
+# from list(...), so appending these keys to the demos registry would silently
+# ship five extra pages inside PL300-Demos.
+DEMO_PAGES = {
     "overview": page_overview,
     "python": page_python,
     "r": page_r,
@@ -731,19 +1333,29 @@ PAGE_BUILDERS = {
     "spatial": page_spatial,
 }
 
+SQL_PAGES = {
+    "stores": page_sql_stores,
+    "catchment": page_sql_catchment,
+    "nearest": page_sql_nearest,
+    "regions": page_sql_regions,
+    "adventureworks": page_sql_adventureworks,
+}
 
-def write_report_pbir(report_dir, page_keys, write_json_fn):
+
+def write_report_pbir(report_dir, page_keys, write_json_fn, builders):
     """
     Emit the PBIR `definition/` tree and return the page names in order.
 
     write_json_fn is the module's write_json, passed in to keep this function
-    free of import-order concerns.
+    free of import-order concerns. `builders` is the solution's page registry,
+    passed rather than read from a global so the two solutions cannot leak into
+    each other.
     """
     definition = report_dir / "definition"
     page_names = []
 
     for key in page_keys:
-        page_name, display_name, visuals = PAGE_BUILDERS[key]()
+        page_name, display_name, visuals = builders[key]()
         page_names.append(page_name)
         page_dir = definition / "pages" / page_name
 
@@ -801,15 +1413,94 @@ def write_json(path, obj):
         f.write("\n")
 
 
+@dataclass
+class Solution:
+    """One generated .pbip project. Everything that differs between them."""
+    name: str
+    logical_ids: dict
+    pages: dict
+    model_builder: object
+    needs_sql_dir: bool = False
+    emit_scripts: bool = False
+    extra_dirs: tuple = ()
+    extra_files: tuple = ()
+
+    def owned(self):
+        """(directories, files) under --out that this solution may delete."""
+        return ([f"{self.name}.Report", f"{self.name}.SemanticModel", *self.extra_dirs],
+                [f"{self.name}.pbip", *self.extra_files])
+
+
+SOLUTIONS = {
+    # Inline #table literals. Opens with no data source and no credential
+    # prompt, which is what makes it safe to hand out and to validate
+    # automatically.
+    "demos": Solution(
+        name="PL300-Demos",
+        logical_ids={"report": "6f1d2b7a-3c4e-4a51-9b0d-7e2f8a1c4d55",
+                     "model": "b28c7f14-9a3d-4e62-8f07-1c5d93ab6e20"},
+        pages=DEMO_PAGES,
+        model_builder=build_demo_model,
+        needs_sql_dir=True,
+        emit_scripts=True,
+        extra_dirs=("scripts",),
+        extra_files=("LIVE-SQL-QUERIES.md",),
+    ),
+    # Live Sql.Database against PL300Demo. Prompts for credentials on first
+    # open, and needs the demo VM (or a reachable copy of that database).
+    "spatial-sql": Solution(
+        name="PL300-Spatial-SQL",
+        logical_ids={"report": "e9cea732-bd54-47ed-9655-1a1c3d9f100d",
+                     "model": "ef1fab1a-5e48-4dae-82fa-29f384b7c637"},
+        pages=SQL_PAGES,
+        model_builder=build_sql_model,
+    ),
+}
+
+
+def _check_solutions():
+    """
+    No two solutions may claim the same path or the same logicalId.
+
+    Paths matter because generating one solution deletes what it owns, and
+    `scripts` and `LIVE-SQL-QUERIES.md` are not name-prefixed - a second
+    solution claiming either would silently eat the first's files.
+
+    logicalId matters because it is the item key for Fabric git integration, not
+    the folder name. Duplicating one produces a tree that validates, opens fine
+    in Desktop, and only breaks on sync, where the second item overwrites the
+    first. Nothing else in the toolchain checks this.
+    """
+    paths, ids = {}, {}
+    for key, sol in SOLUTIONS.items():
+        dirs, files = sol.owned()
+        for p in dirs + files:
+            if p in paths:
+                raise SystemExit(f"solutions {paths[p]!r} and {key!r} both own {p!r}")
+            paths[p] = key
+        for gid in sol.logical_ids.values():
+            if gid in ids:
+                raise SystemExit(f"solutions {ids[gid]!r} and {key!r} share logicalId {gid}")
+            ids[gid] = key
+
+
+_check_solutions()
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--solution", default="demos", choices=sorted(SOLUTIONS),
+                    help="demos = inline literals, no credential prompt; "
+                         "spatial-sql = live DirectQuery against PL300Demo")
     ap.add_argument("--out", default="powerbi")
     ap.add_argument("--demo-data", default="demo-data")
-    ap.add_argument("--sql-dir", required=True,
+    ap.add_argument("--sql-dir",
                     help="directory holding stores.csv, catchment.csv, customers.csv "
-                         "exported from the PL300Demo spatial views")
+                         "exported from the PL300Demo spatial views. Required for "
+                         "--solution demos; unused by spatial-sql, which reads the "
+                         "views live")
     ap.add_argument("--pages", default="all",
-                    help="comma-separated subset of: " + ",".join(PAGE_BUILDERS))
+                    help="comma-separated subset of the chosen solution's pages")
     ap.add_argument("--pbir", action="store_true",
                     help="declare definition.pbir version 4.0 so Power BI reads the "
                          "PBIR definition/ folder. REQUIRES the 'Store reports using "
@@ -819,46 +1510,55 @@ def main():
                          "on a stock install.")
     args = ap.parse_args()
 
+    sol = SOLUTIONS[args.solution]
     out = Path(args.out).resolve()
-    sql_dir = Path(args.sql_dir).resolve()
     demo_data = Path(args.demo_data).resolve()
 
-    stores = read_pipe_csv(sql_dir / "stores.csv",
-                           ["StoreID", "StoreName", "City", "State", "RegionName",
-                            "Latitude", "Longitude", "WellKnownText"])
-    catchment = read_pipe_csv(sql_dir / "catchment.csv",
-                              ["StoreID", "StoreName", "RegionName", "CustomersWithin25km",
-                               "CustomersWithin50km", "CustomersWithin100km", "CustomersTotal"])
-    customers = read_pipe_csv(sql_dir / "customers.csv",
-                              ["CustomerID", "HomeStoreID", "StoreName", "RegionName",
-                               "LoyaltyTier", "Latitude", "Longitude", "DistanceToHomeStoreKm"])
-    for name, rows in (("stores", stores), ("catchment", catchment), ("customers", customers)):
-        if not rows:
-            raise SystemExit(f"No rows read from {name}.csv - check --sql-dir")
-    catchment = [{**c, "StoreID": c["StoreID"]} for c in catchment]
+    sources = {}
+    if sol.needs_sql_dir:
+        if not args.sql_dir:
+            ap.error(f"--sql-dir is required for --solution {args.solution}")
+        sql_dir = Path(args.sql_dir).resolve()
+        sources["stores"] = read_pipe_csv(
+            sql_dir / "stores.csv",
+            ["StoreID", "StoreName", "City", "State", "RegionName",
+             "Latitude", "Longitude", "WellKnownText"])
+        sources["catchment"] = read_pipe_csv(
+            sql_dir / "catchment.csv",
+            ["StoreID", "StoreName", "RegionName", "CustomersWithin25km",
+             "CustomersWithin50km", "CustomersWithin100km", "CustomersTotal"])
+        sources["customers"] = read_pipe_csv(
+            sql_dir / "customers.csv",
+            ["CustomerID", "HomeStoreID", "StoreName", "RegionName",
+             "LoyaltyTier", "Latitude", "Longitude", "DistanceToHomeStoreKm"])
+        for name in ("stores", "catchment", "customers"):
+            if not sources[name]:
+                raise SystemExit(f"No rows read from {name}.csv - check --sql-dir")
+        (sources["categories"], sources["monthly"],
+         sources["cat_monthly"]) = load_contoso_aggregates(demo_data)
 
-    categories, monthly, cat_monthly = load_contoso_aggregates(demo_data)
-
-    page_keys = list(PAGE_BUILDERS) if args.pages == "all" else \
+    page_keys = list(sol.pages) if args.pages == "all" else \
         [p.strip() for p in args.pages.split(",") if p.strip()]
     for p in page_keys:
-        if p not in PAGE_BUILDERS:
-            raise SystemExit(f"Unknown page '{p}'. Choose from: {', '.join(PAGE_BUILDERS)}")
+        if p not in sol.pages:
+            raise SystemExit(f"Unknown page '{p}' for --solution {args.solution}. "
+                             f"Choose from: {', '.join(sol.pages)}")
 
-    # Remove only what this script owns. A blanket rmtree(out) would delete
+    # Remove only what THIS solution owns. A blanket rmtree(out) would delete
     # hand-written files that live alongside the generated ones - it silently ate
-    # powerbi/README.md once.
-    for owned in (f"{NAME}.Report", f"{NAME}.SemanticModel", "scripts"):
+    # powerbi/README.md once - and would now also delete the sibling solution.
+    owned_dirs, owned_files = sol.owned()
+    for owned in owned_dirs:
         target = out / owned
         if target.exists():
             shutil.rmtree(target)
-    for owned in (f"{NAME}.pbip", "LIVE-SQL-QUERIES.md"):
+    for owned in owned_files:
         target = out / owned
         if target.exists():
             target.unlink()
 
-    report_dir = out / f"{NAME}.Report"
-    model_dir = out / f"{NAME}.SemanticModel"
+    report_dir = out / f"{sol.name}.Report"
+    model_dir = out / f"{sol.name}.SemanticModel"
 
     # Power BI Desktop validates these $schema values against a regex and refuses
     # the project outright if they do not match. The exact patterns it expects
@@ -866,11 +1566,11 @@ def main():
     #   .pbip            ^.../fabric/pbip/pbipProperties/1.[0-9]+.[0-9]+/schema.json$
     #   definition.pbir  ^.../fabric/item/report/definitionProperties/1.[0-9]+.[0-9]+/schema.json$
     #   definition.pbism ^.../fabric/item/semanticModel/definitionProperties/1.[0-9]+.[0-9]+/...
-    write_json(out / f"{NAME}.pbip", {
+    write_json(out / f"{sol.name}.pbip", {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/pbip/"
                    "pbipProperties/1.0.0/schema.json",
         "version": "1.0",
-        "artifacts": [{"report": {"path": f"{NAME}.Report"}}],
+        "artifacts": [{"report": {"path": f"{sol.name}.Report"}}],
         "settings": {"enableAutoRecovery": True},
     })
 
@@ -881,9 +1581,10 @@ def main():
         "settings": {},
     })
     write_json(model_dir / ".platform",
-               platform_file("SemanticModel", NAME, LOGICAL_IDS["model"]))
-    write_json(model_dir / "model.bim",
-               build_model(categories, monthly, cat_monthly, stores, catchment, customers))
+               platform_file("SemanticModel", sol.name, sol.logical_ids["model"]))
+    live_sql_docs = []
+    model = sol.model_builder(sources, live_sql_docs)
+    write_json(model_dir / "model.bim", model)
 
     # Version 4.0 (+ the 2.0.0 schema) is what lets Power BI read the PBIR
     # definition/ folder - but ONLY when the PBIR preview feature is enabled. On a
@@ -903,37 +1604,38 @@ def main():
                        "definitionProperties/1.0.0/schema.json",
             "version": "1.0",
         }
-    pbir_props["datasetReference"] = {"byPath": {"path": f"../{NAME}.SemanticModel"}}
+    pbir_props["datasetReference"] = {"byPath": {"path": f"../{sol.name}.SemanticModel"}}
     write_json(report_dir / "definition.pbir", pbir_props)
     write_json(report_dir / ".platform",
-               platform_file("Report", NAME, LOGICAL_IDS["report"]))
-    page_names = write_report_pbir(report_dir, page_keys, write_json)
+               platform_file("Report", sol.name, sol.logical_ids["report"]))
+    page_names = write_report_pbir(report_dir, page_keys, write_json, sol.pages)
     # Also emit the legacy report.json. definition.pbir version 4.0 permits
     # either, and Power BI Desktop reads the definition/ folder only when the
     # PBIR preview feature is enabled - falling back to report.json otherwise.
     # Shipping both means the solution renders on a stock install today.
-    write_json(report_dir / "report.json", build_report_legacy(page_keys))
+    write_json(report_dir / "report.json", build_report_legacy(page_keys, sol.pages))
 
     # Emit the script bodies as standalone files from the same constants the
     # report uses, so the two can never drift. They serve two purposes: a
     # teaching artifact the class can read, and a paste source for the R/Python
     # visuals while the report is in PBIR-Legacy form (where Power BI does not
     # load an externally-authored script body).
-    scripts_dir = out / "scripts"
-    for filename, body, note in (
-        ("python-category-revenue.py", PYTHON_SCRIPT,
-         "Paste into the Python visual on page 2."),
-        ("r-ggplot-category.R", R_GGPLOT_SCRIPT,
-         "Paste into the R visual on page 3."),
-        ("r-forecast-arima.R", R_FORECAST_SCRIPT,
-         "Paste into the R visual on page 4."),
-    ):
-        comment = "#" if filename.endswith(".py") else "#"
-        header = f"{comment} {note}\n{comment} Generated by scripts/generate-pbip.py - edit there, not here.\n\n"
-        (scripts_dir / filename).parent.mkdir(parents=True, exist_ok=True)
-        (scripts_dir / filename).write_text(header + body, encoding="utf-8")
+    if sol.emit_scripts:
+        scripts_dir = out / "scripts"
+        for filename, body, note in (
+            ("python-category-revenue.py", PYTHON_SCRIPT,
+             "Paste into the Python visual on page 2."),
+            ("r-ggplot-category.R", R_GGPLOT_SCRIPT,
+             "Paste into the R visual on page 3."),
+            ("r-forecast-arima.R", R_FORECAST_SCRIPT,
+             "Paste into the R visual on page 4."),
+        ):
+            comment = "#" if filename.endswith(".py") else "#"
+            header = f"{comment} {note}\n{comment} Generated by scripts/generate-pbip.py - edit there, not here.\n\n"
+            (scripts_dir / filename).parent.mkdir(parents=True, exist_ok=True)
+            (scripts_dir / filename).write_text(header + body, encoding="utf-8")
 
-    if LIVE_SQL_DOCS:
+    if live_sql_docs:
         doc = ["# Repointing the spatial tables at live SQL Server", "",
                "The spatial tables in this solution are materialised as inline M `#table`",
                "literals so the file opens with no data-source prompt and no credential",
@@ -941,19 +1643,58 @@ def main():
                "`PL300Demo` database on the demo VM.", "",
                "To read them live from SQL Server instead, open **Transform data**, select",
                "the query, and replace its `Source` step with the code below.", ""]
-        for view, sql in LIVE_SQL_DOCS:
+        for view, sql in live_sql_docs:
             doc += [f"## {view}", "", "```m", sql, "```", ""]
-        doc += ["Power BI cannot consume a `geography` column directly - it arrives as an",
-                "unusable binary value - which is why every one of these queries selects",
-                "`.Lat` / `.Long` / `.STAsText()` through a view rather than the raw column.",
+        doc += ["Every one of these queries projects `.Lat` / `.Long` / `.STAsText()` through",
+                "a view rather than selecting the raw column, because **Power BI has no spatial",
+                "data type**. The documented Power BI type list stops at Text, the number types,",
+                "the date/time types, True/false, Binary and Blank; the tabular engine's list is",
+                "the same. A `geography` value has nowhere to land.",
+                "",
+                "Microsoft does not document what the SQL Server connector *does* with such a",
+                "column - the connector's limitations section covers only certificates, Always",
+                "Encrypted and Entra ID - so treat the exact behaviour as unspecified rather",
+                "than repeating a blog. What is certain is the type system, and that projecting",
+                "to scalars in T-SQL sidesteps the question entirely.",
+                "",
+                "Project `.Lat` and `.Long` as named columns rather than parsing `.STAsText()`",
+                "in Power Query: WKT is X-then-Y, so a geography point is `POINT(longitude",
+                "latitude)` - the reverse of how people say it - and that mix-up plots data in",
+                "the wrong hemisphere without erroring.",
+                "",
+                "## A better pattern than any of the above",
+                "",
+                "`[Query = \"SELECT ...\"]` is a *native query*: Power BI raises an approval",
+                "dialog for every distinct query text, folding stops there, and incremental",
+                "refresh cannot use it. Prefer navigating to the view and letting the engine",
+                "generate the SQL:",
+                "",
+                "```m",
+                'let',
+                '    Source = Sql.Database("localhost", "PL300Demo"),',
+                '    dbo_vw_StoreLocations = Source{[Schema="dbo",Item="vw_StoreLocations"]}[Data]',
+                'in',
+                '    dbo_vw_StoreLocations',
+                "```",
+                "",
+                "`PL300-Spatial-SQL.pbip` is built entirely this way - see",
+                "[README.md](README.md).",
                 ""]
         (out / "LIVE-SQL-QUERIES.md").write_text("\n".join(doc), encoding="utf-8")
 
-    files = sorted(p for p in out.rglob("*") if p.is_file())
+    # Scoped to this solution's own paths: an unscoped rglob over --out would
+    # count the sibling solution's files as if this run had written them.
+    files = sorted(
+        p for owned in owned_dirs + owned_files
+        for p in ([out / owned] if (out / owned).is_file()
+                  else (out / owned).rglob("*"))
+        if p.is_file())
     total = sum(p.stat().st_size for p in files)
+    modes = {t["partitions"][0]["mode"] for t in model["model"]["tables"]}
+    print(f"solution: {sol.name} ({args.solution}), storage "
+          f"{'/'.join(sorted(modes))}")
     print(f"pages   : {', '.join(page_names)}")
-    print(f"tables  : CategorySales, MonthlyRevenue, CategoryMonthlySales, "
-          f"StoreGeography ({len(stores)}), CustomerGeography ({len(customers)})")
+    print(f"tables  : " + ", ".join(t["name"] for t in model["model"]["tables"]))
     print(f"written : {len(files)} files, {total/1024:.1f} KB -> {out}")
     for f in files:
         print(f"          {f.relative_to(out)}")
@@ -1061,10 +1802,10 @@ def pbir_visual_to_legacy(v):
     }
 
 
-def build_report_legacy(page_keys):
+def build_report_legacy(page_keys, builders):
     sections = []
     for i, key in enumerate(page_keys):
-        page_name, display_name, visuals = PAGE_BUILDERS[key]()
+        page_name, display_name, visuals = builders[key]()
         sections.append({
             "name": page_name,
             "displayName": display_name,

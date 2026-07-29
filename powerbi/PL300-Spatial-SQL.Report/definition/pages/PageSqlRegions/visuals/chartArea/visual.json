@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "chartArea",
+  "position": {
+    "x": 16,
+    "y": 522,
+    "z": 0,
+    "width": 620,
+    "height": 182,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RegionBoundaries"
+                    }
+                  },
+                  "Property": "RegionName"
+                }
+              },
+              "queryRef": "RegionBoundaries.RegionName",
+              "nativeQueryRef": "Region"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RegionBoundaries"
+                        }
+                      },
+                      "Property": "AreaSqKm"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(RegionBoundaries.AreaSqKm)",
+              "nativeQueryRef": "Area sq km"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Polygon area by region'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

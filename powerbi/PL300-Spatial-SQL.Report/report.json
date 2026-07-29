@@ -1,0 +1,418 @@
+{
+  "config": "{\"version\":\"5.43\",\"themeCollection\":{},\"activeSectionIndex\":0,\"defaultDrillFilterOtherVisuals\":true,\"settings\":{\"useStylableVisualContainerHeader\":true,\"allowChangeFilterTypes\":true,\"useNewFilterPaneExperience\":true,\"useEnhancedTooltips\":true}}",
+  "layoutOptimization": 0,
+  "publicCustomVisuals": [],
+  "sections": [
+    {
+      "name": "PageSqlStores",
+      "displayName": "1. Stores (geography to columns)",
+      "ordinal": 0,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 92,
+          "config": "{\"name\":\"tbSqlStores\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":92,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"A geography column, projected into columns  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"Live from SQL Server: dbo.vw_StoreLocations over PL300Demo, in DirectQuery. Power BI has no spatial data type at all - the documented type list stops at Text/Number/Date/Boolean/Binary - so StoreLocation.GeoPoint has nowhere to land. The view is what makes it usable: .Lat and .Long become numbers, .STAsText() becomes the WKT text in the last column.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 112,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardStores\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":112,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreLocations.Store Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreLocations\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Store Count\"},\"Name\":\"StoreLocations.Store Count\",\"NativeReferenceName\":\"Store Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 328,
+          "y": 112,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardRegions\",\"layouts\":[{\"id\":0,\"position\":{\"x\":328,\"y\":112,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"RegionBoundaries.Region Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"RegionBoundaries\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Region Count\"},\"Name\":\"RegionBoundaries.Region Count\",\"NativeReferenceName\":\"Region Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 112,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardCustomers\",\"layouts\":[{\"id\":0,\"position\":{\"x\":640,\"y\":112,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CustomerLocations.Customer Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerLocations\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Customer Count\"},\"Name\":\"CustomerLocations.Customer Count\",\"NativeReferenceName\":\"Customer Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 952,
+          "y": 112,
+          "z": 0,
+          "width": 312,
+          "height": 104,
+          "config": "{\"name\":\"cardAddresses\",\"layouts\":[{\"id\":0,\"position\":{\"x\":952,\"y\":112,\"z\":0,\"width\":312,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"AdventureWorksAddresses.Address Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"AdventureWorksAddresses\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Address Count\"},\"Name\":\"AdventureWorksAddresses.Address Count\",\"NativeReferenceName\":\"Address Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 232,
+          "z": 0,
+          "width": 620,
+          "height": 472,
+          "config": "{\"name\":\"mapStores\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":232,\"z\":0,\"width\":620,\"height\":472,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"azureMap\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"StoreLocations.City\"}],\"Latitude\":[{\"queryRef\":\"Avg(StoreLocations.Latitude)\"}],\"Longitude\":[{\"queryRef\":\"Avg(StoreLocations.Longitude)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreLocations\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"City\"},\"Name\":\"StoreLocations.City\",\"NativeReferenceName\":\"City\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Latitude\"}},\"Function\":1},\"Name\":\"Avg(StoreLocations.Latitude)\",\"NativeReferenceName\":\"Latitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Longitude\"}},\"Function\":1},\"Name\":\"Avg(StoreLocations.Longitude)\",\"NativeReferenceName\":\"Longitude\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 648,
+          "y": 232,
+          "z": 0,
+          "width": 616,
+          "height": 472,
+          "config": "{\"name\":\"tblStoreWkt\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":232,\"z\":0,\"width\":616,\"height\":472,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreLocations.StoreName\"},{\"queryRef\":\"StoreLocations.State\"},{\"queryRef\":\"StoreLocations.RegionName\"},{\"queryRef\":\"Avg(StoreLocations.Latitude)\"},{\"queryRef\":\"Avg(StoreLocations.Longitude)\"},{\"queryRef\":\"StoreLocations.WellKnownText\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreLocations\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"StoreName\"},\"Name\":\"StoreLocations.StoreName\",\"NativeReferenceName\":\"Store\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"State\"},\"Name\":\"StoreLocations.State\",\"NativeReferenceName\":\"State\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"StoreLocations.RegionName\",\"NativeReferenceName\":\"Region\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Latitude\"}},\"Function\":1},\"Name\":\"Avg(StoreLocations.Latitude)\",\"NativeReferenceName\":\"Latitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Longitude\"}},\"Function\":1},\"Name\":\"Avg(StoreLocations.Longitude)\",\"NativeReferenceName\":\"Longitude\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"WellKnownText\"},\"Name\":\"StoreLocations.WellKnownText\",\"NativeReferenceName\":\"WKT from .STAsText()\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageSqlCatchment",
+      "displayName": "2. Catchment (STDistance)",
+      "ordinal": 1,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 92,
+          "config": "{\"name\":\"tbSqlCatchment\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":92,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"STDistance, recomputed on every click  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"dbo.vw_StoreCatchment CROSS JOINs 8 stores against 480 customers and evaluates GeoPoint.STDistance for all 3,840 pairs - a real distance buffer, not a bounding box. STDistance returns metres for geography, hence the /1000 in the view. It answers in about 10 ms, which is why DirectQuery is safe here. Performance Analyzer > Copy query shows the SQL Power BI sent.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 112,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardWithin25\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":112,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreCatchment.Within 25 km\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreCatchment\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Within 25 km\"},\"Name\":\"StoreCatchment.Within 25 km\",\"NativeReferenceName\":\"Within 25 km\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 328,
+          "y": 112,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardWithin50\",\"layouts\":[{\"id\":0,\"position\":{\"x\":328,\"y\":112,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreCatchment.Within 50 km\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreCatchment\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Within 50 km\"},\"Name\":\"StoreCatchment.Within 50 km\",\"NativeReferenceName\":\"Within 50 km\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 112,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardWithin100\",\"layouts\":[{\"id\":0,\"position\":{\"x\":640,\"y\":112,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreCatchment.Within 100 km\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreCatchment\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Within 100 km\"},\"Name\":\"StoreCatchment.Within 100 km\",\"NativeReferenceName\":\"Within 100 km\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 952,
+          "y": 112,
+          "z": 0,
+          "width": 312,
+          "height": 104,
+          "config": "{\"name\":\"cardCoverage\",\"layouts\":[{\"id\":0,\"position\":{\"x\":952,\"y\":112,\"z\":0,\"width\":312,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreCatchment.Catchment Coverage %\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreCatchment\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Catchment Coverage %\"},\"Name\":\"StoreCatchment.Catchment Coverage %\",\"NativeReferenceName\":\"Catchment Coverage %\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 232,
+          "z": 0,
+          "width": 700,
+          "height": 472,
+          "config": "{\"name\":\"chartCatchment\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":232,\"z\":0,\"width\":700,\"height\":472,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"clusteredColumnChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"StoreCatchment.StoreName\"}],\"Y\":[{\"queryRef\":\"StoreCatchment.Within 25 km\"},{\"queryRef\":\"StoreCatchment.Within 50 km\"},{\"queryRef\":\"StoreCatchment.Within 100 km\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreCatchment\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"StoreName\"},\"Name\":\"StoreCatchment.StoreName\",\"NativeReferenceName\":\"Store\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Within 25 km\"},\"Name\":\"StoreCatchment.Within 25 km\",\"NativeReferenceName\":\"Within 25 km\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Within 50 km\"},\"Name\":\"StoreCatchment.Within 50 km\",\"NativeReferenceName\":\"Within 50 km\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Within 100 km\"},\"Name\":\"StoreCatchment.Within 100 km\",\"NativeReferenceName\":\"Within 100 km\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 732,
+          "y": 232,
+          "z": 0,
+          "width": 532,
+          "height": 472,
+          "config": "{\"name\":\"tblCatchment\",\"layouts\":[{\"id\":0,\"position\":{\"x\":732,\"y\":232,\"z\":0,\"width\":532,\"height\":472,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreCatchment.StoreName\"},{\"queryRef\":\"StoreCatchment.CustomersWithin25km\"},{\"queryRef\":\"StoreCatchment.CustomersWithin50km\"},{\"queryRef\":\"StoreCatchment.CustomersWithin100km\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreCatchment\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"StoreName\"},\"Name\":\"StoreCatchment.StoreName\",\"NativeReferenceName\":\"Store\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin25km\"},\"Name\":\"StoreCatchment.CustomersWithin25km\",\"NativeReferenceName\":\"25 km\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin50km\"},\"Name\":\"StoreCatchment.CustomersWithin50km\",\"NativeReferenceName\":\"50 km\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin100km\"},\"Name\":\"StoreCatchment.CustomersWithin100km\",\"NativeReferenceName\":\"100 km\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageSqlNearest",
+      "displayName": "3. Nearest store (CROSS APPLY)",
+      "ordinal": 2,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 104,
+          "config": "{\"name\":\"tbSqlNearest\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"Nearest-neighbour: CROSS APPLY TOP 1 ORDER BY STDistance  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"dbo.vw_CustomerNearestStore ignores HomeStoreID entirely and picks the closest store geometrically, then compares the two. Expect 480 of 480 to agree and 0 reassignment candidates - this is a data-quality check that currently PASSES, so say the expected answer out loud before you click. powerbi/README.md has a one-line UPDATE that makes it fail, and because these tables are DirectQuery the cards move with no refresh.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardAssessed\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CustomerNearestStore.Customers Assessed\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerNearestStore\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Customers Assessed\"},\"Name\":\"CustomerNearestStore.Customers Assessed\",\"NativeReferenceName\":\"Customers Assessed\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 328,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardMatch\",\"layouts\":[{\"id\":0,\"position\":{\"x\":328,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CustomerNearestStore.Nearest Is Home Store\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerNearestStore\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Nearest Is Home Store\"},\"Name\":\"CustomerNearestStore.Nearest Is Home Store\",\"NativeReferenceName\":\"Nearest Is Home Store\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardCandidates\",\"layouts\":[{\"id\":0,\"position\":{\"x\":640,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CustomerNearestStore.Reassignment Candidates\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerNearestStore\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Reassignment Candidates\"},\"Name\":\"CustomerNearestStore.Reassignment Candidates\",\"NativeReferenceName\":\"Reassignment Candidates\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 952,
+          "y": 124,
+          "z": 0,
+          "width": 312,
+          "height": 104,
+          "config": "{\"name\":\"cardRate\",\"layouts\":[{\"id\":0,\"position\":{\"x\":952,\"y\":124,\"z\":0,\"width\":312,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CustomerNearestStore.Assignment Match Rate\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerNearestStore\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Assignment Match Rate\"},\"Name\":\"CustomerNearestStore.Assignment Match Rate\",\"NativeReferenceName\":\"Assignment Match Rate\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 244,
+          "z": 0,
+          "width": 760,
+          "height": 460,
+          "config": "{\"name\":\"scatterCustomers\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":244,\"z\":0,\"width\":760,\"height\":460,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"scatterChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"CustomerLocations.CustomerID\"}],\"X\":[{\"queryRef\":\"Avg(CustomerLocations.Longitude)\"}],\"Y\":[{\"queryRef\":\"Avg(CustomerLocations.Latitude)\"}],\"Series\":[{\"queryRef\":\"CustomerLocations.RegionName\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerLocations\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomerID\"},\"Name\":\"CustomerLocations.CustomerID\",\"NativeReferenceName\":\"CustomerID\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Longitude\"}},\"Function\":1},\"Name\":\"Avg(CustomerLocations.Longitude)\",\"NativeReferenceName\":\"Longitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Latitude\"}},\"Function\":1},\"Name\":\"Avg(CustomerLocations.Latitude)\",\"NativeReferenceName\":\"Latitude\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"CustomerLocations.RegionName\",\"NativeReferenceName\":\"Region\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 788,
+          "y": 244,
+          "z": 0,
+          "width": 476,
+          "height": 226,
+          "config": "{\"name\":\"chartNearestDist\",\"layouts\":[{\"id\":0,\"position\":{\"x\":788,\"y\":244,\"z\":0,\"width\":476,\"height\":226,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"columnChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"CustomerNearestStore.NearestStoreName\"}],\"Y\":[{\"queryRef\":\"CustomerNearestStore.Avg Nearest Distance Km\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerNearestStore\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"NearestStoreName\"},\"Name\":\"CustomerNearestStore.NearestStoreName\",\"NativeReferenceName\":\"Nearest store\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Avg Nearest Distance Km\"},\"Name\":\"CustomerNearestStore.Avg Nearest Distance Km\",\"NativeReferenceName\":\"Avg Nearest Distance Km\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 788,
+          "y": 478,
+          "z": 0,
+          "width": 476,
+          "height": 226,
+          "config": "{\"name\":\"tblNearest\",\"layouts\":[{\"id\":0,\"position\":{\"x\":788,\"y\":478,\"z\":0,\"width\":476,\"height\":226,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CustomerNearestStore.CustomerID\"},{\"queryRef\":\"CustomerNearestStore.NearestStoreName\"},{\"queryRef\":\"Avg(CustomerNearestStore.DistanceKm)\"},{\"queryRef\":\"CustomerNearestStore.NearestIsHomeStore\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CustomerNearestStore\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomerID\"},\"Name\":\"CustomerNearestStore.CustomerID\",\"NativeReferenceName\":\"Customer\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"NearestStoreName\"},\"Name\":\"CustomerNearestStore.NearestStoreName\",\"NativeReferenceName\":\"Nearest store\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"DistanceKm\"}},\"Function\":1},\"Name\":\"Avg(CustomerNearestStore.DistanceKm)\",\"NativeReferenceName\":\"Distance km\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"NearestIsHomeStore\"},\"Name\":\"CustomerNearestStore.NearestIsHomeStore\",\"NativeReferenceName\":\"Nearest = home?\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageSqlRegions",
+      "displayName": "4. Point-in-polygon (STIntersects)",
+      "ordinal": 3,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 104,
+          "config": "{\"name\":\"tbSqlRegions\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"STIntersects, STArea, and the STCentroid trap  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"dbo.vw_StoreRegionCheck joins each store to a region by GEOMETRY - ON b.Boundary.STIntersects(s.GeoPoint) = 1 - a join on shape rather than on a key. STArea() returns square metres. The gotcha worth the page: geography has no STCentroid() (that is geometry-only, and calling it fails with Msg 6506), so the centre points below come from EnvelopeCenter() instead. The centres are plotted on a scatter rather than a map on purpose: Azure Maps geocodes whatever is in its Location field, and \\\"South\\\" is not a place - it lands in the Atlantic.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardStoresChecked\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreRegionCheck.Stores Checked\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreRegionCheck\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Stores Checked\"},\"Name\":\"StoreRegionCheck.Stores Checked\",\"NativeReferenceName\":\"Stores Checked\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 328,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardMismatches\",\"layouts\":[{\"id\":0,\"position\":{\"x\":328,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreRegionCheck.Region Mismatches\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreRegionCheck\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Region Mismatches\"},\"Name\":\"StoreRegionCheck.Region Mismatches\",\"NativeReferenceName\":\"Region Mismatches\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardRegionCount\",\"layouts\":[{\"id\":0,\"position\":{\"x\":640,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"RegionBoundaries.Region Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"RegionBoundaries\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Region Count\"},\"Name\":\"RegionBoundaries.Region Count\",\"NativeReferenceName\":\"Region Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 952,
+          "y": 124,
+          "z": 0,
+          "width": 312,
+          "height": 104,
+          "config": "{\"name\":\"cardArea\",\"layouts\":[{\"id\":0,\"position\":{\"x\":952,\"y\":124,\"z\":0,\"width\":312,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"RegionBoundaries.Total Region Area SqKm\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"RegionBoundaries\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Total Region Area SqKm\"},\"Name\":\"RegionBoundaries.Total Region Area SqKm\",\"NativeReferenceName\":\"Total Region Area SqKm\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 244,
+          "z": 0,
+          "width": 620,
+          "height": 270,
+          "config": "{\"name\":\"scatterRegionCentres\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":244,\"z\":0,\"width\":620,\"height\":270,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"scatterChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"RegionBoundaries.RegionName\"}],\"X\":[{\"queryRef\":\"Avg(RegionBoundaries.CenterLongitude)\"}],\"Y\":[{\"queryRef\":\"Avg(RegionBoundaries.CenterLatitude)\"}],\"Series\":[{\"queryRef\":\"RegionBoundaries.RegionName\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"RegionBoundaries\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"RegionBoundaries.RegionName\",\"NativeReferenceName\":\"Region\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CenterLongitude\"}},\"Function\":1},\"Name\":\"Avg(RegionBoundaries.CenterLongitude)\",\"NativeReferenceName\":\"Longitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CenterLatitude\"}},\"Function\":1},\"Name\":\"Avg(RegionBoundaries.CenterLatitude)\",\"NativeReferenceName\":\"Latitude\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 522,
+          "z": 0,
+          "width": 620,
+          "height": 182,
+          "config": "{\"name\":\"chartArea\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":522,\"z\":0,\"width\":620,\"height\":182,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"clusteredColumnChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"RegionBoundaries.RegionName\"}],\"Y\":[{\"queryRef\":\"Sum(RegionBoundaries.AreaSqKm)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"RegionBoundaries\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"RegionBoundaries.RegionName\",\"NativeReferenceName\":\"Region\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"AreaSqKm\"}},\"Function\":0},\"Name\":\"Sum(RegionBoundaries.AreaSqKm)\",\"NativeReferenceName\":\"Area sq km\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 648,
+          "y": 244,
+          "z": 0,
+          "width": 616,
+          "height": 226,
+          "config": "{\"name\":\"tblRegionCheck\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":244,\"z\":0,\"width\":616,\"height\":226,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreRegionCheck.StoreName\"},{\"queryRef\":\"StoreRegionCheck.AssignedRegion\"},{\"queryRef\":\"StoreRegionCheck.ContainingRegion\"},{\"queryRef\":\"StoreRegionCheck.Result\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreRegionCheck\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"StoreName\"},\"Name\":\"StoreRegionCheck.StoreName\",\"NativeReferenceName\":\"Store\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"AssignedRegion\"},\"Name\":\"StoreRegionCheck.AssignedRegion\",\"NativeReferenceName\":\"Assigned\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"ContainingRegion\"},\"Name\":\"StoreRegionCheck.ContainingRegion\",\"NativeReferenceName\":\"Contains the point\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Result\"},\"Name\":\"StoreRegionCheck.Result\",\"NativeReferenceName\":\"Result\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 648,
+          "y": 478,
+          "z": 0,
+          "width": 616,
+          "height": 226,
+          "config": "{\"name\":\"tblRegionWkt\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":478,\"z\":0,\"width\":616,\"height\":226,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"RegionBoundaries.RegionName\"},{\"queryRef\":\"Sum(RegionBoundaries.PointCount)\"},{\"queryRef\":\"Sum(RegionBoundaries.AreaSqKm)\"},{\"queryRef\":\"RegionBoundaries.WellKnownText\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"RegionBoundaries\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"RegionBoundaries.RegionName\",\"NativeReferenceName\":\"Region\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"PointCount\"}},\"Function\":0},\"Name\":\"Sum(RegionBoundaries.PointCount)\",\"NativeReferenceName\":\"Points\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"AreaSqKm\"}},\"Function\":0},\"Name\":\"Sum(RegionBoundaries.AreaSqKm)\",\"NativeReferenceName\":\"Area sq km\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"WellKnownText\"},\"Name\":\"RegionBoundaries.WellKnownText\",\"NativeReferenceName\":\"Polygon WKT\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageSqlAdventureWorks",
+      "displayName": "5. Real geography column (Import)",
+      "ordinal": 4,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 104,
+          "config": "{\"name\":\"tbSqlAw\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"A genuine Microsoft geography column  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"Person.Address.SpatialLocation in AdventureWorks2022 is a real geography column in a Microsoft sample database, not demo data - and dbo.vw_AdventureWorksAddresses projects it with exactly the same .Lat / .Long pattern as page 1, so the technique generalises. This is also the only Import table in the model, which is what makes the storage mode read Mixed.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardAwCount\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"AdventureWorksAddresses.Address Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"AdventureWorksAddresses\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Address Count\"},\"Name\":\"AdventureWorksAddresses.Address Count\",\"NativeReferenceName\":\"Address Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 328,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardAwCountries\",\"layouts\":[{\"id\":0,\"position\":{\"x\":328,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"AdventureWorksAddresses.Country Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"AdventureWorksAddresses\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Country Count\"},\"Name\":\"AdventureWorksAddresses.Country Count\",\"NativeReferenceName\":\"Country Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 124,
+          "z": 0,
+          "width": 300,
+          "height": 104,
+          "config": "{\"name\":\"cardAwCities\",\"layouts\":[{\"id\":0,\"position\":{\"x\":640,\"y\":124,\"z\":0,\"width\":300,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"AdventureWorksAddresses.City Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"AdventureWorksAddresses\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"City Count\"},\"Name\":\"AdventureWorksAddresses.City Count\",\"NativeReferenceName\":\"City Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 952,
+          "y": 124,
+          "z": 0,
+          "width": 312,
+          "height": 104,
+          "config": "{\"name\":\"tbAwMode\",\"layouts\":[{\"id\":0,\"position\":{\"x\":952,\"y\":124,\"z\":0,\"width\":312,\"height\":104,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"Import. \",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"Data view shows its 19,614 rows; the six DirectQuery tables say \\\"DirectQuery tables can't be shown\\\". Stop the SQL Server service and pages 1-4 go red while this one keeps rendering.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 244,
+          "z": 0,
+          "width": 760,
+          "height": 460,
+          "config": "{\"name\":\"mapAw\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":244,\"z\":0,\"width\":760,\"height\":460,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"azureMap\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"AdventureWorksAddresses.City\"}],\"Latitude\":[{\"queryRef\":\"Avg(AdventureWorksAddresses.Latitude)\"}],\"Longitude\":[{\"queryRef\":\"Avg(AdventureWorksAddresses.Longitude)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"AdventureWorksAddresses\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"City\"},\"Name\":\"AdventureWorksAddresses.City\",\"NativeReferenceName\":\"City\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Latitude\"}},\"Function\":1},\"Name\":\"Avg(AdventureWorksAddresses.Latitude)\",\"NativeReferenceName\":\"Latitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Longitude\"}},\"Function\":1},\"Name\":\"Avg(AdventureWorksAddresses.Longitude)\",\"NativeReferenceName\":\"Longitude\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 788,
+          "y": 244,
+          "z": 0,
+          "width": 476,
+          "height": 226,
+          "config": "{\"name\":\"chartAwCountry\",\"layouts\":[{\"id\":0,\"position\":{\"x\":788,\"y\":244,\"z\":0,\"width\":476,\"height\":226,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"columnChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"AdventureWorksAddresses.CountryRegion\"}],\"Y\":[{\"queryRef\":\"AdventureWorksAddresses.Address Count\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"AdventureWorksAddresses\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CountryRegion\"},\"Name\":\"AdventureWorksAddresses.CountryRegion\",\"NativeReferenceName\":\"Country / region\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Address Count\"},\"Name\":\"AdventureWorksAddresses.Address Count\",\"NativeReferenceName\":\"Address Count\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 788,
+          "y": 478,
+          "z": 0,
+          "width": 476,
+          "height": 226,
+          "config": "{\"name\":\"scatterAwFallback\",\"layouts\":[{\"id\":0,\"position\":{\"x\":788,\"y\":478,\"z\":0,\"width\":476,\"height\":226,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"scatterChart\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Category\":[{\"queryRef\":\"AdventureWorksAddresses.City\"}],\"X\":[{\"queryRef\":\"Avg(AdventureWorksAddresses.Longitude)\"}],\"Y\":[{\"queryRef\":\"Avg(AdventureWorksAddresses.Latitude)\"}],\"Series\":[{\"queryRef\":\"AdventureWorksAddresses.CountryRegion\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"AdventureWorksAddresses\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"City\"},\"Name\":\"AdventureWorksAddresses.City\",\"NativeReferenceName\":\"City\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Longitude\"}},\"Function\":1},\"Name\":\"Avg(AdventureWorksAddresses.Longitude)\",\"NativeReferenceName\":\"Longitude\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Latitude\"}},\"Function\":1},\"Name\":\"Avg(AdventureWorksAddresses.Latitude)\",\"NativeReferenceName\":\"Latitude\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CountryRegion\"},\"Name\":\"AdventureWorksAddresses.CountryRegion\",\"NativeReferenceName\":\"Country\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    }
+  ]
+}

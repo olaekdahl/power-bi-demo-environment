@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tbSqlStores",
+  "position": {
+    "x": 16,
+    "y": 12,
+    "z": 0,
+    "width": 1248,
+    "height": 92,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "A geography column, projected into columns  ",
+                    "textStyle": {
+                      "fontSize": "18pt",
+                      "fontWeight": "bold",
+                      "color": "#1F4E79"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Live from SQL Server: dbo.vw_StoreLocations over PL300Demo, in DirectQuery. Power BI has no spatial data type at all - the documented type list stops at Text/Number/Date/Boolean/Binary - so StoreLocation.GeoPoint has nowhere to land. The view is what makes it usable: .Lat and .Long become numbers, .STAsText() becomes the WKT text in the last column.",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "fontWeight": "normal",
+                      "color": "#333333"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

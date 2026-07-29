@@ -8,6 +8,10 @@
 #   ./scripts/snapshot-report.sh 2                  # page index 2 (0-based)
 #   ./scripts/snapshot-report.sh 2 180 mypage.png   # page, wait, output name
 #
+# powerbi/ holds more than one solution, so pick with SOLUTION:
+#
+#   SOLUTION=PL300-Spatial-SQL ./scripts/snapshot-report.sh 0 150 stores.png
+#
 # How it works: az vm run-command runs as SYSTEM in session 0, which has no
 # desktop, so a capture from there is black. The heavy lifting therefore happens
 # in a scheduled task registered with -LogonType Interactive, which executes
@@ -21,6 +25,9 @@ WAIT_SECONDS="${2:-120}"
 OUT_NAME="${3:-report-page${PAGE_INDEX}.png}"
 
 PBIP_DIR="$REPO_ROOT/powerbi"
+# Which solution in powerbi/ to open. Both are uploaded either way; this decides
+# which .pbip Power BI is pointed at, and whose pages.json gets the active page.
+SOLUTION="${SOLUTION:-PL300-Demos}"
 SHOT_DIR="$REPO_ROOT/.snapshots"
 SNAP_SCRIPT="$REPO_ROOT/scripts/snapshot.ps1"
 
@@ -47,10 +54,12 @@ mkdir -p "$SHOT_DIR"
 info "setting activeSectionIndex=$PAGE_INDEX"
 # PBIR keeps page order and the active page in definition/pages/pages.json,
 # rather than the legacy report.json "activeSectionIndex".
-python3 - "$PBIP_DIR" "$PAGE_INDEX" <<'PY'
+python3 - "$PBIP_DIR" "$PAGE_INDEX" "$SOLUTION" <<'PY'
 import json, sys, pathlib
-d, idx = pathlib.Path(sys.argv[1]), int(sys.argv[2])
-pages_dir = d / "PL300-Demos.Report" / "definition" / "pages"
+d, idx, sol = pathlib.Path(sys.argv[1]), int(sys.argv[2]), sys.argv[3]
+pages_dir = d / f"{sol}.Report" / "definition" / "pages"
+if not pages_dir.is_dir():
+    raise SystemExit(f"no such solution: {sol} (looked for {pages_dir})")
 meta_path = pages_dir / "pages.json"
 meta = json.loads(meta_path.read_text())
 order = meta["pageOrder"]
@@ -62,7 +71,7 @@ display = json.loads((pages_dir / order[idx] / "page.json").read_text())["displa
 
 # The solution ships both formats; set the active page in the legacy one too,
 # since Power BI reads report.json unless the PBIR preview feature is enabled.
-legacy = d / "PL300-Demos.Report" / "report.json"
+legacy = d / f"{sol}.Report" / "report.json"
 if legacy.exists():
     r = json.loads(legacy.read_text())
     cfg = json.loads(r["config"])
@@ -103,7 +112,7 @@ az storage blob upload --account-name "$SA" --account-key "$KEY" -c screenshots 
 SNAP_B64="$(base64 -w0 "$SNAP_SCRIPT")"
 RUNNER="$SHOT_DIR/runner.ps1"
 cat > "$RUNNER" <<'PSEOF'
-param([string]$SasUrl, [string]$BlobName, [int]$WaitSeconds, [string]$SnapB64, [int]$RefreshWait = 70, [string]$NoRefresh = '0')
+param([string]$SasUrl, [string]$BlobName, [int]$WaitSeconds, [string]$SnapB64, [int]$RefreshWait = 70, [string]$NoRefresh = '0', [string]$Solution = 'PL300-Demos')
 $ErrorActionPreference = 'Continue'
 New-Item -ItemType Directory -Path 'C:\PL300\Tools','C:\PL300\Solution' -Force | Out-Null
 [IO.File]::WriteAllBytes('C:\PL300\Tools\snapshot.ps1', [Convert]::FromBase64String($SnapB64))
@@ -114,8 +123,14 @@ $base = ($SasUrl -split '\?')[0]; $q = ($SasUrl -split '\?')[1]
 Invoke-WebRequest -Uri "$base/pbip.zip`?$q" -OutFile $zip -UseBasicParsing
 Remove-Item 'C:\PL300\Solution\powerbi' -Recurse -Force -ErrorAction SilentlyContinue
 Expand-Archive -Path $zip -DestinationPath 'C:\PL300\Solution' -Force
-$pbip = Get-ChildItem 'C:\PL300\Solution\powerbi' -Filter *.pbip | Select-Object -First 1
-if (-not $pbip) { Write-Output 'ERROR: no .pbip found after extract'; exit 1 }
+# Named, not "the first one found": powerbi/ ships more than one solution, and
+# -First 1 silently resolved to whichever name sorted first.
+$pbip = Get-ChildItem 'C:\PL300\Solution\powerbi' -Filter "$Solution.pbip" | Select-Object -First 1
+if (-not $pbip) {
+    Write-Output "ERROR: $Solution.pbip not found after extract. Present:"
+    Get-ChildItem 'C:\PL300\Solution\powerbi' -Filter *.pbip | ForEach-Object { Write-Output "  $($_.Name)" }
+    exit 1
+}
 Write-Output "solution: $($pbip.FullName)"
 
 $args = '-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File "C:\PL300\Tools\snapshot.ps1"' +
@@ -141,7 +156,7 @@ RUNNER_B64="$(base64 -w0 "$RUNNER")"
 
 info "opening the solution, refreshing the model, and capturing (allow ~$((WAIT_SECONDS + 200))s)"
 az vm run-command invoke -g "$RG" -n "$VM" --command-id RunPowerShellScript \
-  --scripts "[IO.File]::WriteAllBytes('C:\\PL300\\Tools\\runner.ps1',[Convert]::FromBase64String('$RUNNER_B64')); & powershell -ExecutionPolicy Bypass -NoProfile -File C:\\PL300\\Tools\\runner.ps1 -SasUrl '$SASURL' -BlobName '$OUT_NAME' -WaitSeconds $WAIT_SECONDS -SnapB64 '$SNAP_B64' -NoRefresh '${NO_REFRESH:-0}'" \
+  --scripts "[IO.File]::WriteAllBytes('C:\\PL300\\Tools\\runner.ps1',[Convert]::FromBase64String('$RUNNER_B64')); & powershell -ExecutionPolicy Bypass -NoProfile -File C:\\PL300\\Tools\\runner.ps1 -SasUrl '$SASURL' -BlobName '$OUT_NAME' -WaitSeconds $WAIT_SECONDS -SnapB64 '$SNAP_B64' -NoRefresh '${NO_REFRESH:-0}' -Solution '$SOLUTION'" \
   --query 'value[0].message' -o tsv 2>&1 | sed 's/^/  /'
 
 # --- retrieve ----------------------------------------------------------------

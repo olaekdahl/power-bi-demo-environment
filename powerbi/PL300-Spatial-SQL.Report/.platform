@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "PL300-Spatial-SQL"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e9cea732-bd54-47ed-9655-1a1c3d9f100d"
+  }
+}

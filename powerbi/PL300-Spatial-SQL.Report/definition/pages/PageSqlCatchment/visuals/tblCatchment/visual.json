@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblCatchment",
+  "position": {
+    "x": 732,
+    "y": 232,
+    "z": 0,
+    "width": 532,
+    "height": 472,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreCatchment"
+                    }
+                  },
+                  "Property": "StoreName"
+                }
+              },
+              "queryRef": "StoreCatchment.StoreName",
+              "nativeQueryRef": "Store"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreCatchment"
+                    }
+                  },
+                  "Property": "CustomersWithin25km"
+                }
+              },
+              "queryRef": "StoreCatchment.CustomersWithin25km",
+              "nativeQueryRef": "25 km"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreCatchment"
+                    }
+                  },
+                  "Property": "CustomersWithin50km"
+                }
+              },
+              "queryRef": "StoreCatchment.CustomersWithin50km",
+              "nativeQueryRef": "50 km"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreCatchment"
+                    }
+                  },
+                  "Property": "CustomersWithin100km"
+                }
+              },
+              "queryRef": "StoreCatchment.CustomersWithin100km",
+              "nativeQueryRef": "100 km"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Catchment counts per store'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

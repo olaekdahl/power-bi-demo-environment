@@ -30,6 +30,37 @@ Source = Sql.Database("localhost", "PL300Demo",
               JOIN dbo.vw_StoreLocations s ON s.StoreID = c.HomeStoreID"])
 ```
 
-Power BI cannot consume a `geography` column directly - it arrives as an
-unusable binary value - which is why every one of these queries selects
-`.Lat` / `.Long` / `.STAsText()` through a view rather than the raw column.
+Every one of these queries projects `.Lat` / `.Long` / `.STAsText()` through
+a view rather than selecting the raw column, because **Power BI has no spatial
+data type**. The documented Power BI type list stops at Text, the number types,
+the date/time types, True/false, Binary and Blank; the tabular engine's list is
+the same. A `geography` value has nowhere to land.
+
+Microsoft does not document what the SQL Server connector *does* with such a
+column - the connector's limitations section covers only certificates, Always
+Encrypted and Entra ID - so treat the exact behaviour as unspecified rather
+than repeating a blog. What is certain is the type system, and that projecting
+to scalars in T-SQL sidesteps the question entirely.
+
+Project `.Lat` and `.Long` as named columns rather than parsing `.STAsText()`
+in Power Query: WKT is X-then-Y, so a geography point is `POINT(longitude
+latitude)` - the reverse of how people say it - and that mix-up plots data in
+the wrong hemisphere without erroring.
+
+## A better pattern than any of the above
+
+`[Query = "SELECT ..."]` is a *native query*: Power BI raises an approval
+dialog for every distinct query text, folding stops there, and incremental
+refresh cannot use it. Prefer navigating to the view and letting the engine
+generate the SQL:
+
+```m
+let
+    Source = Sql.Database("localhost", "PL300Demo"),
+    dbo_vw_StoreLocations = Source{[Schema="dbo",Item="vw_StoreLocations"]}[Data]
+in
+    dbo_vw_StoreLocations
+```
+
+`PL300-Spatial-SQL.pbip` is built entirely this way - see
+[README.md](README.md).

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tbSqlNearest",
+  "position": {
+    "x": 16,
+    "y": 12,
+    "z": 0,
+    "width": 1248,
+    "height": 104,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Nearest-neighbour: CROSS APPLY TOP 1 ORDER BY STDistance  ",
+                    "textStyle": {
+                      "fontSize": "18pt",
+                      "fontWeight": "bold",
+                      "color": "#1F4E79"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "dbo.vw_CustomerNearestStore ignores HomeStoreID entirely and picks the closest store geometrically, then compares the two. Expect 480 of 480 to agree and 0 reassignment candidates - this is a data-quality check that currently PASSES, so say the expected answer out loud before you click. powerbi/README.md has a one-line UPDATE that makes it fail, and because these tables are DirectQuery the cards move with no refresh.",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "fontWeight": "normal",
+                      "color": "#333333"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

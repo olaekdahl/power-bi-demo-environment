@@ -1,0 +1,1043 @@
+{
+  "name": "SemanticModel",
+  "compatibilityLevel": 1550,
+  "model": {
+    "culture": "en-US",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "en-US",
+    "tables": [
+      {
+        "name": "StoreLocations",
+        "columns": [
+          {
+            "name": "StoreID",
+            "dataType": "int64",
+            "sourceColumn": "StoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "StoreName",
+            "dataType": "string",
+            "sourceColumn": "StoreName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "City",
+            "dataType": "string",
+            "sourceColumn": "City",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "City"
+          },
+          {
+            "name": "State",
+            "dataType": "string",
+            "sourceColumn": "State",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "StateOrProvince"
+          },
+          {
+            "name": "RegionID",
+            "dataType": "int64",
+            "sourceColumn": "RegionID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "RegionName",
+            "dataType": "string",
+            "sourceColumn": "RegionName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Latitude",
+            "dataType": "double",
+            "sourceColumn": "Latitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Latitude"
+          },
+          {
+            "name": "Longitude",
+            "dataType": "double",
+            "sourceColumn": "Longitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Longitude"
+          },
+          {
+            "name": "WellKnownText",
+            "dataType": "string",
+            "sourceColumn": "WellKnownText",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CityState",
+            "dataType": "string",
+            "sourceColumn": "CityState",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "Place"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "StoreLocations-partition",
+            "mode": "directQuery",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Sql.Database(\"localhost\", \"PL300Demo\"),",
+                "    dbo_vw_StoreLocations = Source{[Schema=\"dbo\",Item=\"vw_StoreLocations\"]}[Data]",
+                "in",
+                "    dbo_vw_StoreLocations"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Store Count",
+            "expression": "DISTINCTCOUNT ( StoreLocations[StoreID] )",
+            "formatString": "#,0"
+          }
+        ]
+      },
+      {
+        "name": "StoreCatchment",
+        "columns": [
+          {
+            "name": "StoreID",
+            "dataType": "int64",
+            "sourceColumn": "StoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "StoreName",
+            "dataType": "string",
+            "sourceColumn": "StoreName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RegionName",
+            "dataType": "string",
+            "sourceColumn": "RegionName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CustomersWithin25km",
+            "dataType": "int64",
+            "sourceColumn": "CustomersWithin25km",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          },
+          {
+            "name": "CustomersWithin50km",
+            "dataType": "int64",
+            "sourceColumn": "CustomersWithin50km",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          },
+          {
+            "name": "CustomersWithin100km",
+            "dataType": "int64",
+            "sourceColumn": "CustomersWithin100km",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          },
+          {
+            "name": "CustomersTotal",
+            "dataType": "int64",
+            "sourceColumn": "CustomersTotal",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "StoreCatchment-partition",
+            "mode": "directQuery",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Sql.Database(\"localhost\", \"PL300Demo\"),",
+                "    dbo_vw_StoreCatchment = Source{[Schema=\"dbo\",Item=\"vw_StoreCatchment\"]}[Data]",
+                "in",
+                "    dbo_vw_StoreCatchment"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Within 25 km",
+            "expression": "SUM ( StoreCatchment[CustomersWithin25km] )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Within 50 km",
+            "expression": "SUM ( StoreCatchment[CustomersWithin50km] )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Within 100 km",
+            "expression": "SUM ( StoreCatchment[CustomersWithin100km] )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Catchment Coverage %",
+            "expression": "DIVIDE ( [Within 50 km], [Within 100 km] )",
+            "formatString": "0.0%;-0.0%;0.0%"
+          }
+        ]
+      },
+      {
+        "name": "CustomerLocations",
+        "columns": [
+          {
+            "name": "CustomerKey",
+            "dataType": "int64",
+            "sourceColumn": "CustomerKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "CustomerID",
+            "dataType": "string",
+            "sourceColumn": "CustomerID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "HomeStoreID",
+            "dataType": "int64",
+            "sourceColumn": "HomeStoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "HomeStoreName",
+            "dataType": "string",
+            "sourceColumn": "HomeStoreName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RegionName",
+            "dataType": "string",
+            "sourceColumn": "RegionName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LoyaltyTier",
+            "dataType": "string",
+            "sourceColumn": "LoyaltyTier",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Latitude",
+            "dataType": "double",
+            "sourceColumn": "Latitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.00000",
+            "dataCategory": "Latitude"
+          },
+          {
+            "name": "Longitude",
+            "dataType": "double",
+            "sourceColumn": "Longitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.00000",
+            "dataCategory": "Longitude"
+          },
+          {
+            "name": "DistanceToHomeStoreKm",
+            "dataType": "double",
+            "sourceColumn": "DistanceToHomeStoreKm",
+            "summarizeBy": "average",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CustomerLocations-partition",
+            "mode": "directQuery",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Sql.Database(\"localhost\", \"PL300Demo\"),",
+                "    dbo_vw_CustomerLocations = Source{[Schema=\"dbo\",Item=\"vw_CustomerLocations\"]}[Data]",
+                "in",
+                "    dbo_vw_CustomerLocations"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Customer Count",
+            "expression": "COUNTROWS ( CustomerLocations )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Avg Distance To Home Km",
+            "expression": "AVERAGE ( CustomerLocations[DistanceToHomeStoreKm] )",
+            "formatString": "#,0.00"
+          }
+        ]
+      },
+      {
+        "name": "CustomerNearestStore",
+        "columns": [
+          {
+            "name": "CustomerID",
+            "dataType": "string",
+            "sourceColumn": "CustomerID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "HomeStoreID",
+            "dataType": "int64",
+            "sourceColumn": "HomeStoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "NearestStoreID",
+            "dataType": "int64",
+            "sourceColumn": "NearestStoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "NearestStoreName",
+            "dataType": "string",
+            "sourceColumn": "NearestStoreName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "DistanceKm",
+            "dataType": "double",
+            "sourceColumn": "DistanceKm",
+            "summarizeBy": "average",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "NearestIsHomeStore",
+            "dataType": "string",
+            "sourceColumn": "NearestIsHomeStore",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CustomerNearestStore-partition",
+            "mode": "directQuery",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Sql.Database(\"localhost\", \"PL300Demo\"),",
+                "    dbo_vw_CustomerNearestStore = Source{[Schema=\"dbo\",Item=\"vw_CustomerNearestStore\"]}[Data]",
+                "in",
+                "    dbo_vw_CustomerNearestStore"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Customers Assessed",
+            "expression": "COUNTROWS ( CustomerNearestStore )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Nearest Is Home Store",
+            "expression": "CALCULATE ( COUNTROWS ( CustomerNearestStore ), CustomerNearestStore[NearestIsHomeStore] = \"Yes\" )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Reassignment Candidates",
+            "expression": "COALESCE ( CALCULATE ( COUNTROWS ( CustomerNearestStore ), CustomerNearestStore[NearestIsHomeStore] = \"No\" ), 0 )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Assignment Match Rate",
+            "expression": "DIVIDE ( [Nearest Is Home Store], [Customers Assessed] )",
+            "formatString": "0.0%;-0.0%;0.0%"
+          },
+          {
+            "name": "Avg Nearest Distance Km",
+            "expression": "AVERAGE ( CustomerNearestStore[DistanceKm] )",
+            "formatString": "#,0.00"
+          }
+        ]
+      },
+      {
+        "name": "StoreRegionCheck",
+        "columns": [
+          {
+            "name": "StoreID",
+            "dataType": "int64",
+            "sourceColumn": "StoreID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "StoreName",
+            "dataType": "string",
+            "sourceColumn": "StoreName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "AssignedRegion",
+            "dataType": "string",
+            "sourceColumn": "AssignedRegion",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ContainingRegion",
+            "dataType": "string",
+            "sourceColumn": "ContainingRegion",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Result",
+            "dataType": "string",
+            "sourceColumn": "Result",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RegionAreaSqKm",
+            "dataType": "double",
+            "sourceColumn": "RegionAreaSqKm",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "StoreRegionCheck-partition",
+            "mode": "directQuery",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Sql.Database(\"localhost\", \"PL300Demo\"),",
+                "    dbo_vw_StoreRegionCheck = Source{[Schema=\"dbo\",Item=\"vw_StoreRegionCheck\"]}[Data]",
+                "in",
+                "    dbo_vw_StoreRegionCheck"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Stores Checked",
+            "expression": "COUNTROWS ( StoreRegionCheck )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Region Mismatches",
+            "expression": "COALESCE ( CALCULATE ( COUNTROWS ( StoreRegionCheck ), StoreRegionCheck[Result] = \"MISMATCH\" ), 0 )",
+            "formatString": "#,0"
+          }
+        ]
+      },
+      {
+        "name": "RegionBoundaries",
+        "columns": [
+          {
+            "name": "RegionID",
+            "dataType": "int64",
+            "sourceColumn": "RegionID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "RegionName",
+            "dataType": "string",
+            "sourceColumn": "RegionName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "WellKnownText",
+            "dataType": "string",
+            "sourceColumn": "WellKnownText",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CenterLatitude",
+            "dataType": "double",
+            "sourceColumn": "CenterLatitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Latitude"
+          },
+          {
+            "name": "CenterLongitude",
+            "dataType": "double",
+            "sourceColumn": "CenterLongitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Longitude"
+          },
+          {
+            "name": "AreaSqKm",
+            "dataType": "double",
+            "sourceColumn": "AreaSqKm",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0"
+          },
+          {
+            "name": "PointCount",
+            "dataType": "int64",
+            "sourceColumn": "PointCount",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "RegionBoundaries-partition",
+            "mode": "directQuery",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Sql.Database(\"localhost\", \"PL300Demo\"),",
+                "    dbo_vw_RegionBoundaries = Source{[Schema=\"dbo\",Item=\"vw_RegionBoundaries\"]}[Data]",
+                "in",
+                "    dbo_vw_RegionBoundaries"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Region Count",
+            "expression": "DISTINCTCOUNT ( RegionBoundaries[RegionID] )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Total Region Area SqKm",
+            "expression": "SUM ( RegionBoundaries[AreaSqKm] )",
+            "formatString": "#,0"
+          }
+        ]
+      },
+      {
+        "name": "AdventureWorksAddresses",
+        "columns": [
+          {
+            "name": "AddressID",
+            "dataType": "int64",
+            "sourceColumn": "AddressID",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0"
+          },
+          {
+            "name": "City",
+            "dataType": "string",
+            "sourceColumn": "City",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "City"
+          },
+          {
+            "name": "StateProvince",
+            "dataType": "string",
+            "sourceColumn": "StateProvince",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "StateOrProvince"
+          },
+          {
+            "name": "StateProvinceCode",
+            "dataType": "string",
+            "sourceColumn": "StateProvinceCode",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CountryRegion",
+            "dataType": "string",
+            "sourceColumn": "CountryRegion",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "Country"
+          },
+          {
+            "name": "PostalCode",
+            "dataType": "string",
+            "sourceColumn": "PostalCode",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "PostalCode"
+          },
+          {
+            "name": "Latitude",
+            "dataType": "double",
+            "sourceColumn": "Latitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Latitude"
+          },
+          {
+            "name": "Longitude",
+            "dataType": "double",
+            "sourceColumn": "Longitude",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "0.0000",
+            "dataCategory": "Longitude"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "AdventureWorksAddresses-partition",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Sql.Database(\"localhost\", \"PL300Demo\"),",
+                "    dbo_vw_AdventureWorksAddresses = Source{[Schema=\"dbo\",Item=\"vw_AdventureWorksAddresses\"]}[Data]",
+                "in",
+                "    dbo_vw_AdventureWorksAddresses"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Address Count",
+            "expression": "COUNTROWS ( AdventureWorksAddresses )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Country Count",
+            "expression": "DISTINCTCOUNT ( AdventureWorksAddresses[CountryRegion] )",
+            "formatString": "#,0"
+          },
+          {
+            "name": "City Count",
+            "expression": "DISTINCTCOUNT ( AdventureWorksAddresses[City] )",
+            "formatString": "#,0"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "StoreCatchment-StoreLocations",
+        "fromTable": "StoreCatchment",
+        "fromColumn": "StoreID",
+        "toTable": "StoreLocations",
+        "toColumn": "StoreID",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "StoreRegionCheck-StoreLocations",
+        "fromTable": "StoreRegionCheck",
+        "fromColumn": "StoreID",
+        "toTable": "StoreLocations",
+        "toColumn": "StoreID",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "CustomerLocations-StoreLocations",
+        "fromTable": "CustomerLocations",
+        "fromColumn": "HomeStoreID",
+        "toTable": "StoreLocations",
+        "toColumn": "StoreID",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "CustomerNearestStore-StoreLocations",
+        "fromTable": "CustomerNearestStore",
+        "fromColumn": "HomeStoreID",
+        "toTable": "StoreLocations",
+        "toColumn": "StoreID",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "StoreLocations-RegionBoundaries",
+        "fromTable": "StoreLocations",
+        "fromColumn": "RegionID",
+        "toTable": "RegionBoundaries",
+        "toColumn": "RegionID",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"StoreLocations\", \"StoreCatchment\", \"CustomerLocations\", \"CustomerNearestStore\", \"StoreRegionCheck\", \"RegionBoundaries\", \"AdventureWorksAddresses\"]"
+      },
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ]
+  }
+}

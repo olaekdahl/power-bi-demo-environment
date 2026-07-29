@@ -126,18 +126,27 @@ terraform -chdir=terraform output -raw storage_account_key
 In Power BI Desktop: **Get Data → Azure → Azure Blob Storage**, paste the
 container URL, and authenticate with the **Account key**.
 
-## 7. The ready-made Power BI solution
+## 7. The ready-made Power BI solutions
 
-`powerbi/PL300-Demos.pbip` in this repo is a five-page report covering Python, R and
-SQL Server `geography` visuals. Copy the `powerbi` folder to the VM (or open it from
-a synced location) and open the `.pbip` in Power BI Desktop.
+There are two, both in `powerbi/`. Copy that folder to the VM (or open it from a
+synced location) and open the `.pbip` you want in Power BI Desktop.
 
-Two things to know before you show it:
+**`PL300-Demos.pbip`** — five pages covering Python, R and SQL Server `geography`
+visuals, with every table baked in as an inline literal so it opens with no prompts
+at all. This is the one to hand out.
 
 - Accept the **Enable script visuals** prompt on first open. Escape *cancels* it,
   which leaves the R and Python visuals blank with no error shown.
 - Pages 2-4 need a one-time paste of the matching file from `powerbi/scripts/`.
-  [`../powerbi/README.md`](../powerbi/README.md) has the steps and explains why.
+
+**`PL300-Spatial-SQL.pbip`** — five pages reading the `geography` views live from
+`localhost/PL300Demo` over DirectQuery, so the spatial results are computed by SQL
+Server on every interaction. Status bar reads **Mixed** (six DirectQuery tables plus
+one Import). It only works on the VM, and it prompts for SQL credentials the first
+time — Windows authentication as the RDP account is enough.
+
+[`../powerbi/README.md`](../powerbi/README.md) covers both, including the expected
+figures for every page so a wrong render is obvious.
 
 ## 8. Screen capture from outside the VM
 

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblRegionCheck",
+  "position": {
+    "x": 648,
+    "y": 244,
+    "z": 0,
+    "width": 616,
+    "height": 226,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreRegionCheck"
+                    }
+                  },
+                  "Property": "StoreName"
+                }
+              },
+              "queryRef": "StoreRegionCheck.StoreName",
+              "nativeQueryRef": "Store"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreRegionCheck"
+                    }
+                  },
+                  "Property": "AssignedRegion"
+                }
+              },
+              "queryRef": "StoreRegionCheck.AssignedRegion",
+              "nativeQueryRef": "Assigned"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreRegionCheck"
+                    }
+                  },
+                  "Property": "ContainingRegion"
+                }
+              },
+              "queryRef": "StoreRegionCheck.ContainingRegion",
+              "nativeQueryRef": "Contains the point"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreRegionCheck"
+                    }
+                  },
+                  "Property": "Result"
+                }
+              },
+              "queryRef": "StoreRegionCheck.Result",
+              "nativeQueryRef": "Result"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Assigned region vs the polygon that contains the point'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

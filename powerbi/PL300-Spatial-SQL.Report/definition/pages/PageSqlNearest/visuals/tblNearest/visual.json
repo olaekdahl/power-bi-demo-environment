@@ -1,0 +1,107 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblNearest",
+  "position": {
+    "x": 788,
+    "y": 478,
+    "z": 0,
+    "width": 476,
+    "height": 226,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CustomerNearestStore"
+                    }
+                  },
+                  "Property": "CustomerID"
+                }
+              },
+              "queryRef": "CustomerNearestStore.CustomerID",
+              "nativeQueryRef": "Customer"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CustomerNearestStore"
+                    }
+                  },
+                  "Property": "NearestStoreName"
+                }
+              },
+              "queryRef": "CustomerNearestStore.NearestStoreName",
+              "nativeQueryRef": "Nearest store"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CustomerNearestStore"
+                        }
+                      },
+                      "Property": "DistanceKm"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(CustomerNearestStore.DistanceKm)",
+              "nativeQueryRef": "Distance km"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CustomerNearestStore"
+                    }
+                  },
+                  "Property": "NearestIsHomeStore"
+                }
+              },
+              "queryRef": "CustomerNearestStore.NearestIsHomeStore",
+              "nativeQueryRef": "Nearest = home?"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Per-customer nearest-store assignment'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblStoreWkt",
+  "position": {
+    "x": 648,
+    "y": 232,
+    "z": 0,
+    "width": 616,
+    "height": 472,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreLocations"
+                    }
+                  },
+                  "Property": "StoreName"
+                }
+              },
+              "queryRef": "StoreLocations.StoreName",
+              "nativeQueryRef": "Store"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreLocations"
+                    }
+                  },
+                  "Property": "State"
+                }
+              },
+              "queryRef": "StoreLocations.State",
+              "nativeQueryRef": "State"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreLocations"
+                    }
+                  },
+                  "Property": "RegionName"
+                }
+              },
+              "queryRef": "StoreLocations.RegionName",
+              "nativeQueryRef": "Region"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "StoreLocations"
+                        }
+                      },
+                      "Property": "Latitude"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(StoreLocations.Latitude)",
+              "nativeQueryRef": "Latitude"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "StoreLocations"
+                        }
+                      },
+                      "Property": "Longitude"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(StoreLocations.Longitude)",
+              "nativeQueryRef": "Longitude"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreLocations"
+                    }
+                  },
+                  "Property": "WellKnownText"
+                }
+              },
+              "queryRef": "StoreLocations.WellKnownText",
+              "nativeQueryRef": "WKT from .STAsText()"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Well-known text, straight from the geography column'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

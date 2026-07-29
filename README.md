@@ -117,9 +117,9 @@ scripts/
   destroy.sh             tear down
   generate-demo-data.py  builds the CSV/Excel/JSON/XML/PDF/spatial set
   export-spatial-csv.sh  pull the SQL geography views off the VM as CSV
-  generate-pbip.py       builds the powerbi/ Power BI solution (both report formats)
+  generate-pbip.py       builds either powerbi/ solution (--solution, both formats)
   validate-pbip.py       checks the PBIR output against Microsoft's JSON schemas
-  snapshot-report.sh     opens the solution on the VM and screenshots it
+  snapshot-report.sh     opens a solution on the VM and screenshots it (SOLUTION=)
   snapshot.ps1           runs in the VM's interactive session to capture the screen
   ui-probe.sh            drives GUI dialogs UI Automation cannot see
   bootstrap.ps1          runs on the VM: tools, SQL config, restores, demo files
@@ -128,8 +128,9 @@ scripts/
     restore-adventureworks.sql   header-driven restore with MOVE
     create-spatial-demo.sql      geography points/polygons, spatial index, views
 powerbi/
-  PL300-Demos.pbip       the solution; open this in Power BI Desktop
-  README.md              pages, the model, and the two report formats
+  PL300-Demos.pbip       inline literals; opens with no prompts. Hand this one out.
+  PL300-Spatial-SQL.pbip live DirectQuery against PL300Demo; VM only
+  README.md              both solutions, and what the legacy report format drops
   LIVE-SQL-QUERIES.md    swap the inline spatial tables for live SQL
   scripts/               the R/Python bodies as standalone files
 docs/

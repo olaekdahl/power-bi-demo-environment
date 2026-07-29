@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "chartNearestDist",
+  "position": {
+    "x": 788,
+    "y": 244,
+    "z": 0,
+    "width": 476,
+    "height": 226,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "columnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CustomerNearestStore"
+                    }
+                  },
+                  "Property": "NearestStoreName"
+                }
+              },
+              "queryRef": "CustomerNearestStore.NearestStoreName",
+              "nativeQueryRef": "Nearest store"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CustomerNearestStore"
+                    }
+                  },
+                  "Property": "Avg Nearest Distance Km"
+                }
+              },
+              "queryRef": "CustomerNearestStore.Avg Nearest Distance Km",
+              "nativeQueryRef": "Avg Nearest Distance Km"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Average distance to the nearest store'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "cardWithin100",
+  "position": {
+    "x": 640,
+    "y": 112,
+    "z": 0,
+    "width": 300,
+    "height": 104,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "StoreCatchment"
+                    }
+                  },
+                  "Property": "Within 100 km"
+                }
+              },
+              "queryRef": "StoreCatchment.Within 100 km",
+              "nativeQueryRef": "Within 100 km"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Within 100 km'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
