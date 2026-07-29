@@ -1,0 +1,88 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblMonth",
+  "position": {
+    "x": 16,
+    "y": 340,
+    "z": 0,
+    "width": 460,
+    "height": 364,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "MonthName"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.MonthName",
+              "nativeQueryRef": "Month"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Sales"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Sales",
+              "nativeQueryRef": "Sales"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Sales Camping"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Sales Camping",
+              "nativeQueryRef": "Sales Camping"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Same measures, Month on rows'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

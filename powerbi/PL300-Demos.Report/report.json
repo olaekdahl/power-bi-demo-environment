@@ -19,7 +19,7 @@
           "z": 0,
           "width": 1248,
           "height": 80,
-          "config": "{\"name\":\"tbOverview\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":80,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"PL-300 Demo Solution\",\"textStyle\":{\"fontSize\":\"20pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"  Python, R and SQL Server spatial visuals. Every table is an inline M literal, so this file opens with no credential prompt.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "config": "{\"name\":\"tbOverview\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":80,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"PL-300 Demo Solution\",\"textStyle\":{\"fontSize\":\"20pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"  Python, R, SQL Server spatial visuals and a CALCULATE filter-context walkthrough. Every table is an inline M literal, so this file opens with no credential prompt.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
           "filters": "[]"
         },
         {
@@ -203,6 +203,72 @@
           "width": 1248,
           "height": 184,
           "config": "{\"name\":\"tblGeo\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":520,\"z\":0,\"width\":1248,\"height\":184,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"StoreGeography.StoreName\"},{\"queryRef\":\"StoreGeography.RegionName\"},{\"queryRef\":\"StoreGeography.WellKnownText\"},{\"queryRef\":\"Sum(StoreGeography.CustomersWithin25km)\"},{\"queryRef\":\"Sum(StoreGeography.CustomersWithin50km)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"StoreGeography\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"StoreName\"},\"Name\":\"StoreGeography.StoreName\",\"NativeReferenceName\":\"StoreName\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"RegionName\"},\"Name\":\"StoreGeography.RegionName\",\"NativeReferenceName\":\"Region\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"WellKnownText\"},\"Name\":\"StoreGeography.WellKnownText\",\"NativeReferenceName\":\"WKT\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin25km\"}},\"Function\":0},\"Name\":\"Sum(StoreGeography.CustomersWithin25km)\",\"NativeReferenceName\":\"Within 25km\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"CustomersWithin50km\"}},\"Function\":0},\"Name\":\"Sum(StoreGeography.CustomersWithin50km)\",\"NativeReferenceName\":\"Within 50km\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "PageCalculate",
+      "displayName": "6. CALCULATE (filter context)",
+      "ordinal": 5,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "filters": "[]",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"expanded\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}}}}]}}",
+      "visualContainers": [
+        {
+          "x": 16,
+          "y": 12,
+          "z": 0,
+          "width": 1248,
+          "height": 66,
+          "config": "{\"name\":\"tbCalc\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":12,\"z\":0,\"width\":1248,\"height\":66,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"CALCULATE - modifying filter context  \",\"textStyle\":{\"fontSize\":\"18pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"Every measure below is built on the one CategoryMonthlySales table, so nothing here depends on a relationship. Read the formulas bottom right against the numbers above them.\",\"textStyle\":{\"fontSize\":\"11pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 86,
+          "z": 0,
+          "width": 1000,
+          "height": 240,
+          "config": "{\"name\":\"tblLadder\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":86,\"z\":0,\"width\":1000,\"height\":240,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CategoryMonthlySales.Category\"},{\"queryRef\":\"CategoryMonthlySales.Sales\"},{\"queryRef\":\"CategoryMonthlySales.Sales Camping\"},{\"queryRef\":\"CategoryMonthlySales.Sales Camping Kept\"},{\"queryRef\":\"CategoryMonthlySales.Sales All Categories\"},{\"queryRef\":\"CategoryMonthlySales.Category Share %\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CategoryMonthlySales\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Category\"},\"Name\":\"CategoryMonthlySales.Category\",\"NativeReferenceName\":\"Category\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales\"},\"Name\":\"CategoryMonthlySales.Sales\",\"NativeReferenceName\":\"Sales\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales Camping\"},\"Name\":\"CategoryMonthlySales.Sales Camping\",\"NativeReferenceName\":\"Sales Camping\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales Camping Kept\"},\"Name\":\"CategoryMonthlySales.Sales Camping Kept\",\"NativeReferenceName\":\"Sales Camping Kept\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales All Categories\"},\"Name\":\"CategoryMonthlySales.Sales All Categories\",\"NativeReferenceName\":\"Sales All Categories\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Category Share %\"},\"Name\":\"CategoryMonthlySales.Category Share %\",\"NativeReferenceName\":\"Category Share %\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 1028,
+          "y": 86,
+          "z": 0,
+          "width": 236,
+          "height": 114,
+          "config": "{\"name\":\"cardTotal\",\"layouts\":[{\"id\":0,\"position\":{\"x\":1028,\"y\":86,\"z\":0,\"width\":236,\"height\":114,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CategoryMonthlySales.Sales\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CategoryMonthlySales\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales\"},\"Name\":\"CategoryMonthlySales.Sales\",\"NativeReferenceName\":\"Sales\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 1028,
+          "y": 212,
+          "z": 0,
+          "width": 236,
+          "height": 114,
+          "config": "{\"name\":\"cardCamping\",\"layouts\":[{\"id\":0,\"position\":{\"x\":1028,\"y\":212,\"z\":0,\"width\":236,\"height\":114,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CategoryMonthlySales.Sales Camping\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CategoryMonthlySales\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales Camping\"},\"Name\":\"CategoryMonthlySales.Sales Camping\",\"NativeReferenceName\":\"Sales Camping\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16,
+          "y": 340,
+          "z": 0,
+          "width": 460,
+          "height": 364,
+          "config": "{\"name\":\"tblMonth\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":340,\"z\":0,\"width\":460,\"height\":364,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"drillFilterOtherVisuals\":true,\"projections\":{\"Values\":[{\"queryRef\":\"CategoryMonthlySales.MonthName\"},{\"queryRef\":\"CategoryMonthlySales.Sales\"},{\"queryRef\":\"CategoryMonthlySales.Sales Camping\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"e0\",\"Entity\":\"CategoryMonthlySales\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"MonthName\"},\"Name\":\"CategoryMonthlySales.MonthName\",\"NativeReferenceName\":\"Month\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales\"},\"Name\":\"CategoryMonthlySales.Sales\",\"NativeReferenceName\":\"Sales\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"e0\"}},\"Property\":\"Sales Camping\"},\"Name\":\"CategoryMonthlySales.Sales Camping\",\"NativeReferenceName\":\"Sales Camping\"}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 492,
+          "y": 340,
+          "z": 0,
+          "width": 772,
+          "height": 364,
+          "config": "{\"name\":\"tbCalcDax\",\"layouts\":[{\"id\":0,\"position\":{\"x\":492,\"y\":340,\"z\":0,\"width\":772,\"height\":364,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"1.  Sales = SUM ( CategoryMonthlySales[SalesAmount] )\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"bold\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"        No CALCULATE. Each row answers the filter the visual gave it.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]},{\"textRuns\":[{\"value\":\"2.  Sales Camping = CALCULATE ( [Sales], ...[Category] = \\\"Camping\\\" )\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"        Category is already on rows, so this REPLACES that filter:\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]},{\"textRuns\":[{\"value\":\"        all four rows read $3,302,900.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]},{\"textRuns\":[{\"value\":\"3.  Sales Camping Kept = CALCULATE ( [Sales], KEEPFILTERS ( ...same... ) )\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"        KEEPFILTERS intersects instead of replacing - only Camping survives.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]},{\"textRuns\":[{\"value\":\"4.  Sales All Categories = CALCULATE ( [Sales], REMOVEFILTERS ( ...[Category] ) )\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"        Takes the filter away: every row shows the $6,637,231 total.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]},{\"textRuns\":[{\"value\":\"5.  Category Share % = DIVIDE ( [Sales], [Sales All Categories] )\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#1F4E79\"}}]},{\"textRuns\":[{\"value\":\"        Numerator moves, denominator does not. The shares add to 100.0%.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]},{\"textRuns\":[{\"value\":\"Bottom left: the same [Sales Camping] with Month on rows. Category is not on rows there, so there is no Category filter to replace and the filter simply applies - Camping's own monthly numbers, not $3,302,900.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"bold\",\"color\":\"#333333\"}}]},{\"textRuns\":[{\"value\":\"More variants, with their expected answers, are in scripts/calculate-filter-context.dax.\",\"textStyle\":{\"fontSize\":\"10pt\",\"fontWeight\":\"normal\",\"color\":\"#333333\"}}]}]}}]}}}",
           "filters": "[]"
         }
       ]

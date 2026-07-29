@@ -1,12 +1,12 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
-  "name": "tbOverview",
+  "name": "tbCalc",
   "position": {
     "x": 16,
     "y": 12,
     "z": 0,
     "width": 1248,
-    "height": 80,
+    "height": 66,
     "tabOrder": 0
   },
   "visual": {
@@ -19,9 +19,9 @@
               {
                 "textRuns": [
                   {
-                    "value": "PL-300 Demo Solution",
+                    "value": "CALCULATE - modifying filter context  ",
                     "textStyle": {
-                      "fontSize": "20pt",
+                      "fontSize": "18pt",
                       "fontWeight": "bold",
                       "color": "#1F4E79"
                     }
@@ -31,7 +31,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "  Python, R, SQL Server spatial visuals and a CALCULATE filter-context walkthrough. Every table is an inline M literal, so this file opens with no credential prompt.",
+                    "value": "Every measure below is built on the one CategoryMonthlySales table, so nothing here depends on a relationship. Read the formulas bottom right against the numbers above them.",
                     "textStyle": {
                       "fontSize": "11pt",
                       "fontWeight": "normal",

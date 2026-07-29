@@ -5,7 +5,8 @@
     "PagePython",
     "PageR",
     "PageRForecast",
-    "PageSpatial"
+    "PageSpatial",
+    "PageCalculate"
   ],
   "activePageName": "PageOverview"
 }

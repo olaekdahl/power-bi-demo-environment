@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "tblLadder",
+  "position": {
+    "x": 16,
+    "y": 86,
+    "z": 0,
+    "width": 1000,
+    "height": 240,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Category"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Category",
+              "nativeQueryRef": "Category"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Sales"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Sales",
+              "nativeQueryRef": "Sales"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Sales Camping"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Sales Camping",
+              "nativeQueryRef": "Sales Camping"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Sales Camping Kept"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Sales Camping Kept",
+              "nativeQueryRef": "Sales Camping Kept"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Sales All Categories"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Sales All Categories",
+              "nativeQueryRef": "Sales All Categories"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Category Share %"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Category Share %",
+              "nativeQueryRef": "Category Share %"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'The same base measure, five filter contexts'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

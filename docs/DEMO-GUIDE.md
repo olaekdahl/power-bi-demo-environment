@@ -528,6 +528,103 @@ Total Margin =
 ### Demo 14 — CALCULATE and filter context
 **Module: Add measures to Power BI Desktop models**
 
+A finished, runnable version of this is **page 6 of `powerbi/PL300-Demos.pbip`**,
+already on the VM at `C:\PL300\Solution\powerbi`. Every number below is exact, so
+a wrong render is obvious from the back of the room. The paste source, including
+four variants that are not in the model, is
+`powerbi/scripts/calculate-filter-context.dax`.
+
+It is all built on one table, `CategoryMonthlySales` (Category, MonthNumber,
+MonthName, SalesAmount — 48 rows). That is deliberate: it holds both dimensions
+the lesson needs plus the amount, so filter context can be changed without a
+single relationship in the picture. Relationships and filter propagation are the
+*next* lesson, and running them together is what makes CALCULATE feel like magic.
+
+**1. Start with no CALCULATE at all.**
+
+```dax
+Sales = SUM ( CategoryMonthlySales[SalesAmount] )
+```
+
+Put `Category` on a table with this beside it. **$6,637,231** at the total,
+Camping $3,302,900, Apparel $1,580,293, Hiking $1,220,450, Cooking $533,589. Say
+out loud what is happening: the visual puts a filter on each row, and the measure
+answers *that* filter. Nothing else is going on yet.
+
+**2. The simplest CALCULATE there is.**
+
+```dax
+Sales Camping = CALCULATE ( [Sales], CategoryMonthlySales[Category] = "Camping" )
+```
+
+Add it as a second column and stop. **All four rows read $3,302,900.** This is
+the moment the demo exists for — let the room react before explaining. A filter
+argument on a column that the visual has *already* filtered **replaces** that
+filter; it does not narrow it.
+
+**3. The correction, immediately.**
+
+```dax
+Sales Camping Kept =
+CALCULATE ( [Sales], KEEPFILTERS ( CategoryMonthlySales[Category] = "Camping" ) )
+```
+
+Same filter, wrapped. Now only the Camping row shows $3,302,900 and the other
+three go **blank**, because `KEEPFILTERS` intersects with the row's filter instead
+of replacing it. Side by side, columns 2 and 3 teach the whole idea. "CALCULATE
+overrides the filter context" is a half-truth, and this is where to correct it.
+
+**4. Filters can be taken away, not just added.**
+
+```dax
+Sales All Categories =
+CALCULATE ( [Sales], REMOVEFILTERS ( CategoryMonthlySales[Category] ) )
+```
+
+Every row now shows the **$6,637,231** grand total — the row's own Category filter
+is gone.
+
+**5. Why step 4 was worth learning.**
+
+```dax
+Category Share % = DIVIDE ( [Sales], [Sales All Categories] )
+```
+
+A numerator that moves per row over a denominator that does not: Camping 49.8%,
+Apparel 23.8%, Hiking 18.4%, Cooking 8.0%, adding to **100.0%**.
+
+**6. The same measure, a different question.**
+
+Build a second table with `MonthName` on rows and put `[Sales Camping]` — the
+*unchanged* measure from step 2 — next to `[Sales]`. It no longer shows one
+repeated number; it shows Camping's own months (January $149,950 … December
+$313,079, total $3,302,900). Category is not on rows here, so there is no Category
+filter to replace and the filter simply applies. The behaviour was never a
+property of the measure; it was a property of what the visual had already filtered.
+
+**7. Variants, if the room is quick.** Each is in the `.dax` file with its answer.
+
+```dax
+Sales Q4 = CALCULATE ( [Sales], CategoryMonthlySales[MonthNumber] >= 10 )
+
+Sales Camping H2 =
+CALCULATE ( [Sales], CategoryMonthlySales[Category] = "Camping",
+                     CategoryMonthlySales[MonthNumber] >= 7 )
+
+Sales Everything = CALCULATE ( [Sales], REMOVEFILTERS ( CategoryMonthlySales ) )
+
+Sales Visible Categories =
+CALCULATE ( [Sales], ALLSELECTED ( CategoryMonthlySales[Category] ) )
+```
+
+$1,566,730 · $1,737,262 · always $6,637,231 · and `ALLSELECTED` is the one that
+needs a slicer to show its point — it clears the filter the *visual* applied but
+respects the one the *user* applied, so pick two categories and watch a share
+denominator follow the selection instead of staying at the grand total.
+
+**On the AdventureWorks model instead.** If the class built the Internet Sales
+model in Demo 12, the same ladder reads:
+
 ```dax
 Sales All Products =
 CALCULATE ( [Total Sales], REMOVEFILTERS ( DimProduct ) )
@@ -539,9 +636,11 @@ Sales Bikes Only =
 CALCULATE ( [Total Sales], KEEPFILTERS ( DimProduct[EnglishProductCategoryName] = "Bikes" ) )
 ```
 
-Put `Product Share %` in a matrix by category and subcategory and let the class
-watch the denominator stay fixed while the numerator changes. `KEEPFILTERS` vs
-plain filter arguments is worth the extra five minutes.
+Those figures have not been verified against the database, unlike the ones above.
+Note also that `REMOVEFILTERS ( DimProduct )` crosses a relationship — it clears a
+filter on the dimension and lets that flow through to the fact — which is a second
+idea on top of the first. That is exactly why the single-table version is the one
+to open with.
 
 ### Demo 15 — Row-level security
 **Module: Implement row-level security**

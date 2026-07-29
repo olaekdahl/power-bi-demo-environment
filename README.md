@@ -20,7 +20,7 @@ Course reference: [PL-300T00 study guide](https://learn.microsoft.com/en-us/trai
 | Python | `pandas`, `matplotlib`, `numpy`, `seaborn`, `openpyxl`, `ipykernel` — machine-wide |
 | R | `ggplot2`, `dplyr`, `scales`, `forecast` — in the R install's own library |
 | Demo files | 27 files on the VM at `C:\PL300\Data` (CSV, Excel, JSON, XML, PDF, GeoJSON, TopoJSON), also in blob storage |
-| Power BI solution | `powerbi/` — a 5-page `.pbip` with Python, R and SQL `geography` visuals |
+| Power BI solution | `powerbi/` — a 6-page `.pbip` with Python, R, SQL `geography` and CALCULATE demos |
 | Access | RDP 3389 and SQL 1433, restricted to **your public IP only** |
 | Cost control | Nightly auto-shutdown, plus start/stop scripts |
 

@@ -363,6 +363,33 @@
             "name": "PBI_ResultType",
             "value": "Table"
           }
+        ],
+        "measures": [
+          {
+            "name": "Sales",
+            "expression": "SUM ( CategoryMonthlySales[SalesAmount] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0"
+          },
+          {
+            "name": "Sales Camping",
+            "expression": "CALCULATE ( [Sales], CategoryMonthlySales[Category] = \"Camping\" )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0"
+          },
+          {
+            "name": "Sales Camping Kept",
+            "expression": "CALCULATE ( [Sales], KEEPFILTERS ( CategoryMonthlySales[Category] = \"Camping\" ) )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0"
+          },
+          {
+            "name": "Sales All Categories",
+            "expression": "CALCULATE ( [Sales], REMOVEFILTERS ( CategoryMonthlySales[Category] ) )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0"
+          },
+          {
+            "name": "Category Share %",
+            "expression": "DIVIDE ( [Sales], [Sales All Categories] )",
+            "formatString": "0.0%;-0.0%;0.0%"
+          }
         ]
       },
       {

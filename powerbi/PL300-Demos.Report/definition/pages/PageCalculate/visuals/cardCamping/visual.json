@@ -1,0 +1,60 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "cardCamping",
+  "position": {
+    "x": 1028,
+    "y": 212,
+    "z": 0,
+    "width": 236,
+    "height": 114,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CategoryMonthlySales"
+                    }
+                  },
+                  "Property": "Sales Camping"
+                }
+              },
+              "queryRef": "CategoryMonthlySales.Sales Camping",
+              "nativeQueryRef": "Sales Camping"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sales Camping, unfiltered'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

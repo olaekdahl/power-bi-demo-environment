@@ -6,7 +6,7 @@ not these files**, then regenerate.
 
 | Solution | Data | Opens with | Use it for |
 |---|---|---|---|
-| `PL300-Demos.pbip` | Inline M `#table` literals | No prompts at all | Handing out. R, Python and a static spatial page. |
+| `PL300-Demos.pbip` | Inline M `#table` literals | No prompts at all | Handing out. DAX filter context, R, Python and a static spatial page. |
 | `PL300-Spatial-SQL.pbip` | Live `Sql.Database` → `PL300Demo` | A credential prompt, and only on the VM | Showing that the spatial results really come from SQL Server. |
 
 ```bash
@@ -28,7 +28,7 @@ paths the chosen solution owns; a blanket clean once ate this file.
 
 # 1. `PL300-Demos.pbip` — inline literals
 
-Five pages over a five-table model. Every table is an inline `#table` literal, so
+Six pages over a five-table model. Every table is an inline `#table` literal, so
 the file opens with no data source and no credential setup, which is what makes it
 safe to hand to a class and possible to validate automatically.
 
@@ -39,6 +39,7 @@ safe to hand to a class and possible to validate automatically.
 | 3 | R visual (ggplot2) | Needs a one-time paste. |
 | 4 | R forecast (ARIMA) | Needs a one-time paste. |
 | 5 | SQL spatial (geography) | **Renders.** Azure Maps, lat/long scatter, WKT table. |
+| 6 | CALCULATE (filter context) | Two tables, two cards, the formulas on canvas. Not yet screenshot-verified. |
 
 Verified figures on page 1: total **$6,637,230.83** across **35,623 units**, which
 reconciles exactly with `Regional_Sales_Report.pdf` in the demo data set.
@@ -83,6 +84,55 @@ horizontal bars with Camping highest at ≈$3.30M; the forecast visual titles it
 The first time you open the report Power BI asks to **Enable script visuals** —
 accept it. Pressing Escape *cancels* that prompt, which leaves every script visual
 blank with no error message anywhere.
+
+## Page 6 — CALCULATE and filter context
+
+Five measures on `CategoryMonthlySales`, and nothing else. One table was chosen on
+purpose: it already carries both dimensions the lesson needs (`Category` and
+`MonthName`) plus the amount, so filter context can be changed and re-changed with
+no relationship anywhere in the picture. Relationships and filter propagation are a
+separate lesson, and teaching both at once is what makes CALCULATE feel like magic.
+
+The left table has `Category` on rows, and every figure below is exact:
+
+| Category | Sales | Sales Camping | Sales Camping Kept | Sales All Categories | Category Share % |
+|---|---|---|---|---|---|
+| Apparel | $1,580,293 | $3,302,900 | *(blank)* | $6,637,231 | 23.8% |
+| Camping | $3,302,900 | $3,302,900 | $3,302,900 | $6,637,231 | 49.8% |
+| Cooking | $533,589 | $3,302,900 | *(blank)* | $6,637,231 | 8.0% |
+| Hiking | $1,220,450 | $3,302,900 | *(blank)* | $6,637,231 | 18.4% |
+| **Total** | **$6,637,231** | **$3,302,900** | **$3,302,900** | **$6,637,231** | **100.0%** |
+
+Three constant columns beside one that varies is the whole lesson, and the columns
+to put side by side are **Sales Camping** and **Sales Camping Kept**. Same filter,
+one wrapped in `KEEPFILTERS`: the first *replaces* the row's own Category filter, so
+all four rows read Camping's number; the second *intersects* with it, so three rows
+go blank. "CALCULATE overrides the filter context" is the half-truth this corrects.
+
+The right-hand table projects the **same** `[Sales Camping]` measure with `MonthName`
+on rows — where there is no Category filter to replace, so it simply applies:
+
+| Month | Sales | Sales Camping |
+|---|---|---|
+| January | $316,904 | $149,950 |
+| February | $323,268 | $168,202 |
+| … | | |
+| December | $613,311 | $313,079 |
+| **Total** | **$6,637,231** | **$3,302,900** |
+
+Four more variants — a comparison filter, two ANDed filter arguments, table-wide
+`REMOVEFILTERS`, and `ALLSELECTED` — are in
+[`scripts/calculate-filter-context.dax`](scripts/calculate-filter-context.dax), each
+with its expected answer in a comment. They are deliberately *not* in the model:
+adding one with **Modeling → New measure** and watching the number match the comment
+is the exercise. The five shipped measures in that file are emitted from the same
+list that writes them into `model.bim`, so it cannot claim a formula the page does
+not render.
+
+Visual titles do not survive PBIR-Legacy, so every label the lesson depends on is a
+textbox, and the table columns are left showing raw measure names. That is the right
+outcome here — `Sales Camping Kept` as a column header is exactly what you want the
+class reading while you talk through the formula.
 
 ---
 

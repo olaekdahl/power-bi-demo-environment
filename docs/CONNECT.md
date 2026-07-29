@@ -131,13 +131,16 @@ container URL, and authenticate with the **Account key**.
 There are two, both in `powerbi/`. Copy that folder to the VM (or open it from a
 synced location) and open the `.pbip` you want in Power BI Desktop.
 
-**`PL300-Demos.pbip`** — five pages covering Python, R and SQL Server `geography`
-visuals, with every table baked in as an inline literal so it opens with no prompts
-at all. This is the one to hand out.
+**`PL300-Demos.pbip`** — six pages covering Python, R, SQL Server `geography`
+visuals and a CALCULATE filter-context walkthrough, with every table baked in as an
+inline literal so it opens with no prompts at all. This is the one to hand out.
 
 - Accept the **Enable script visuals** prompt on first open. Escape *cancels* it,
   which leaves the R and Python visuals blank with no error shown.
 - Pages 2-4 need a one-time paste of the matching file from `powerbi/scripts/`.
+- Page 6 needs nothing — the measures are in the model. `powerbi/scripts/`
+  `calculate-filter-context.dax` holds the same ladder plus four variants to add
+  live, each with its expected answer.
 
 **`PL300-Spatial-SQL.pbip`** — five pages reading the `geography` views live from
 `localhost/PL300Demo` over DirectQuery, so the spatial results are computed by SQL

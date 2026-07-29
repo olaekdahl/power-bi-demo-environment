@@ -257,6 +257,89 @@ def model_envelope(tables, relationships):
     }
 
 
+# --------------------------------------------------------------------------- #
+# The CALCULATE ladder (page 6)
+# --------------------------------------------------------------------------- #
+#
+# One list drives three things: the measures written into model.bim, the columns
+# page 6 projects, and powerbi/scripts/calculate-filter-context.dax. They cannot
+# drift apart, which matters here more than elsewhere - the whole point of the
+# page is that the number on the projector matches the formula being read out.
+#
+# Everything is built on CategoryMonthlySales alone. That is deliberate: it
+# already holds both dimensions the lesson needs (Category and MonthName) plus
+# the amount, so filter context can be changed and re-changed without a single
+# relationship in the picture. Relationships and filter propagation are a
+# separate lesson, and mixing the two is what makes CALCULATE feel like magic.
+
+MONEY_FMT = "\\$#,0;(\\$#,0);\\$#,0"
+
+CALCULATE_LADDER = [
+    ("Sales",
+     "SUM ( CategoryMonthlySales[SalesAmount] )",
+     MONEY_FMT,
+     "Start here. No CALCULATE at all - the measure just answers whatever\n"
+     "filter the visual hands it. $6,637,231 with nothing selected."),
+
+    ("Sales Camping",
+     'CALCULATE ( [Sales], CategoryMonthlySales[Category] = "Camping" )',
+     MONEY_FMT,
+     "The simplest CALCULATE there is: one filter argument. On a visual with\n"
+     "Category on rows, all four rows read $3,302,900 - a filter on a column\n"
+     "that is ALREADY filtered replaces that filter rather than narrowing it."),
+
+    ("Sales Camping Kept",
+     'CALCULATE ( [Sales], KEEPFILTERS ( CategoryMonthlySales[Category] = "Camping" ) )',
+     MONEY_FMT,
+     "The same filter wrapped in KEEPFILTERS intersects instead of replacing,\n"
+     "so only the Camping row survives and the other three go blank. This is\n"
+     "the contrast that makes the previous measure make sense."),
+
+    ("Sales All Categories",
+     "CALCULATE ( [Sales], REMOVEFILTERS ( CategoryMonthlySales[Category] ) )",
+     MONEY_FMT,
+     "Filter arguments can also take filters AWAY. Every row shows the\n"
+     "$6,637,231 grand total, because the row's own Category filter is gone."),
+
+    ("Category Share %",
+     "DIVIDE ( [Sales], [Sales All Categories] )",
+     "0.0%;-0.0%;0.0%",
+     "Why the previous measure is worth learning: a numerator that changes per\n"
+     "row over a denominator that does not. Camping 49.8%, Apparel 23.8%,\n"
+     "Hiking 18.4%, Cooking 8.0% - and they add to 100.0%."),
+]
+
+# Variants the class types in themselves. They are documented rather than
+# shipped in the model on purpose: pasting one in and watching the number match
+# the comment is the exercise. Every figure below was computed from the same
+# CSV rows that become the inline table, so they are exact, not approximate.
+CALCULATE_EXTRAS = [
+    ("Sales Q4",
+     "CALCULATE ( [Sales], CategoryMonthlySales[MonthNumber] >= 10 )",
+     "A filter argument is a condition, not just an equals. $1,566,730 overall;\n"
+     "on Category rows, Camping $772,957 / Apparel $386,154 / Hiking $285,407 /\n"
+     "Cooking $122,212."),
+
+    ("Sales Camping H2",
+     'CALCULATE ( [Sales], CategoryMonthlySales[Category] = "Camping",\n'
+     "                     CategoryMonthlySales[MonthNumber] >= 7 )",
+     "Two filter arguments are ANDed together: $1,737,262. Compare with\n"
+     "[Sales] filtered to months 7-12 alone, $3,519,561."),
+
+    ("Sales Everything",
+     "CALCULATE ( [Sales], REMOVEFILTERS ( CategoryMonthlySales ) )",
+     "REMOVEFILTERS over the whole TABLE, not one column. Always $6,637,231 -\n"
+     "including on a visual with Month on rows, where [Sales All Categories]\n"
+     "still varies because it only clears Category."),
+
+    ("Sales Visible Categories",
+     "CALCULATE ( [Sales], ALLSELECTED ( CategoryMonthlySales[Category] ) )",
+     "ALLSELECTED clears the filter the visual applied but respects the one the\n"
+     "user applied. Identical to [Sales All Categories] until you add a Category\n"
+     "slicer - then pick two categories and watch the denominator follow."),
+]
+
+
 def build_demo_model(sources, docs):
     """The inline-literal solution: no data source, no credential prompt."""
     categories = sources["categories"]
@@ -344,7 +427,9 @@ def build_demo_model(sources, docs):
         inline_table(
             [("Category", "text", txt), ("MonthNumber", "Int64.Type", integer),
              ("MonthName", "text", txt), ("SalesAmount", "number", num2)],
-            cat_monthly)))
+            cat_monthly),
+        measures=[measure(name, expr, fmt)
+                  for name, expr, fmt, _ in CALCULATE_LADDER]))
 
     tables.append(table(
         "StoreGeography",
@@ -882,8 +967,9 @@ def page_overview():
     return "PageOverview", "1. Overview", [
         textbox("tbOverview", 16, 12, 1248, 80, [
             {"text": "PL-300 Demo Solution", "size": 20, "bold": True, "colour": ACCENT},
-            {"text": "  Python, R and SQL Server spatial visuals. Every table is an "
-                     "inline M literal, so this file opens with no credential prompt.",
+            {"text": "  Python, R, SQL Server spatial visuals and a CALCULATE "
+                     "filter-context walkthrough. Every table is an inline M literal, "
+                     "so this file opens with no credential prompt.",
              "size": 11},
         ]),
         visual("cardRevenue", "card", 16, 100, 300, 110,
@@ -1006,6 +1092,70 @@ def page_spatial():
                    proj_sum("StoreGeography", "CustomersWithin50km", "Within 50km"),
                ]},
                title_text="Well-known text straight from the geography column"),
+    ]
+
+
+def page_calculate():
+    # Titles are set for the PBIR path but do NOT survive PBIR-Legacy, which is
+    # what a stock Desktop reads - so every label the lesson depends on lives in
+    # a textbox, and the table headers are left as the measure names. That is a
+    # happy accident here: "Sales Camping Kept" as a column header is exactly
+    # what you want the class reading while you talk through the formula.
+    ladder = [proj_column("CategoryMonthlySales", "Category")] + [
+        proj_measure("CategoryMonthlySales", name) for name, _, _, _ in CALCULATE_LADDER]
+
+    dax = lambda t: {"text": t, "size": 10, "colour": "#1F4E79"}
+    note = lambda t: {"text": "        " + t, "size": 10}
+
+    return "PageCalculate", "6. CALCULATE (filter context)", [
+        textbox("tbCalc", 16, 12, 1248, 66, [
+            {"text": "CALCULATE - modifying filter context  ", "size": 18, "bold": True,
+             "colour": ACCENT},
+            {"text": "Every measure below is built on the one CategoryMonthlySales "
+                     "table, so nothing here depends on a relationship. Read the "
+                     "formulas bottom right against the numbers above them.", "size": 11},
+        ]),
+        visual("tblLadder", "tableEx", 16, 86, 1000, 240,
+               roles={"Values": ladder},
+               title_text="The same base measure, five filter contexts"),
+        visual("cardTotal", "card", 1028, 86, 236, 114,
+               roles={"Values": [proj_measure("CategoryMonthlySales", "Sales")]},
+               title_text="Sales, unfiltered"),
+        visual("cardCamping", "card", 1028, 212, 236, 114,
+               roles={"Values": [proj_measure("CategoryMonthlySales", "Sales Camping")]},
+               title_text="Sales Camping, unfiltered"),
+        # The point of this second table: it projects the SAME [Sales Camping]
+        # measure against a different row header. Category is not on rows here,
+        # so the filter argument has nothing to replace and it intersects
+        # instead - which is why "CALCULATE overrides" is a half-truth worth
+        # correcting on the spot.
+        visual("tblMonth", "tableEx", 16, 340, 460, 364,
+               roles={"Values": [
+                   proj_column("CategoryMonthlySales", "MonthName", "Month"),
+                   proj_measure("CategoryMonthlySales", "Sales"),
+                   proj_measure("CategoryMonthlySales", "Sales Camping"),
+               ]},
+               title_text="Same measures, Month on rows"),
+        textbox("tbCalcDax", 492, 340, 772, 364, [
+            {"text": "1.  Sales = SUM ( CategoryMonthlySales[SalesAmount] )",
+             "size": 10, "bold": True, "colour": ACCENT},
+            note("No CALCULATE. Each row answers the filter the visual gave it."),
+            dax('2.  Sales Camping = CALCULATE ( [Sales], ...[Category] = "Camping" )'),
+            note("Category is already on rows, so this REPLACES that filter:"),
+            note("all four rows read $3,302,900."),
+            dax('3.  Sales Camping Kept = CALCULATE ( [Sales], KEEPFILTERS ( ...same... ) )'),
+            note("KEEPFILTERS intersects instead of replacing - only Camping survives."),
+            dax("4.  Sales All Categories = CALCULATE ( [Sales], REMOVEFILTERS ( ...[Category] ) )"),
+            note("Takes the filter away: every row shows the $6,637,231 total."),
+            dax("5.  Category Share % = DIVIDE ( [Sales], [Sales All Categories] )"),
+            note("Numerator moves, denominator does not. The shares add to 100.0%."),
+            {"text": "Bottom left: the same [Sales Camping] with Month on rows. Category is "
+                     "not on rows there, so there is no Category filter to replace and the "
+                     "filter simply applies - Camping's own monthly numbers, not $3,302,900.",
+             "size": 10, "bold": True},
+            {"text": "More variants, with their expected answers, are in "
+                     "scripts/calculate-filter-context.dax.", "size": 10},
+        ]),
     ]
 
 
@@ -1331,6 +1481,7 @@ DEMO_PAGES = {
     "r": page_r,
     "rforecast": page_r_forecast,
     "spatial": page_spatial,
+    "calculate": page_calculate,
 }
 
 SQL_PAGES = {
@@ -1634,6 +1785,35 @@ def main():
             header = f"{comment} {note}\n{comment} Generated by scripts/generate-pbip.py - edit there, not here.\n\n"
             (scripts_dir / filename).parent.mkdir(parents=True, exist_ok=True)
             (scripts_dir / filename).write_text(header + body, encoding="utf-8")
+
+        # The CALCULATE ladder as a readable, pasteable file. Measures 1-5 are
+        # emitted from the same list that put them in model.bim, so the file can
+        # never claim a formula the page does not actually render.
+        def _dax_block(index, name, expr, comment):
+            body = "\n".join("// " + line for line in comment.split("\n"))
+            sep = "\n" if "\n" in expr else " "
+            return [f"// {index}. {name}", body, f"{name} ={sep}{expr}", ""]
+
+        dax_lines = [
+            "// CALCULATE - modifying filter context",
+            "// Generated by scripts/generate-pbip.py - edit there, not here.",
+            "//",
+            "// Measures 1-5 are already in PL300-Demos.pbip and are what page 6",
+            "// renders; they are repeated here so the ladder reads as one piece and",
+            "// so it can be lifted into another model by changing the table name.",
+            "//",
+            "// The variants at the bottom are NOT in the model - adding them is the",
+            "// exercise. Modeling > New measure on the CategoryMonthlySales table,",
+            "// paste, then check the result against the answer in the comment.",
+            "",
+        ]
+        for i, (name, expr, _, comment) in enumerate(CALCULATE_LADDER, 1):
+            dax_lines += _dax_block(i, name, expr, comment)
+        dax_lines += ["// " + "-" * 68, "// Variants - type these in yourself", "// " + "-" * 68, ""]
+        for i, (name, expr, comment) in enumerate(CALCULATE_EXTRAS, len(CALCULATE_LADDER) + 1):
+            dax_lines += _dax_block(i, name, expr, comment)
+        (scripts_dir / "calculate-filter-context.dax").write_text(
+            "\n".join(dax_lines), encoding="utf-8")
 
     if live_sql_docs:
         doc = ["# Repointing the spatial tables at live SQL Server", "",
